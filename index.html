@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Panel Clicker Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #87CEEB;
+      margin: 0;
+      padding: 0;
+      transition: background-color 3s;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23FFD700"><circle cx="12" cy="12" r="10"/></svg>') 12 12, auto;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .resources {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .resource {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .game-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .left-panel {
+      flex: 1;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .right-panel {
+      flex: 2;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sun {
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, #FFD700, #FF8C00);
+      border-radius: 50%;
+      margin: 0 auto;
+      cursor: pointer;
+      transition: transform 0.2s;
+      box-shadow: 0 0 50px #FFD700;
+      position: relative;
+    }
+
+    .sun:hover {
+      transform: scale(1.1);
+    }
+
+    .sun:active {
+      transform: scale(0.95);
+    }
+
+    .upgrade-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .upgrade-item {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .upgrade-item:hover {
+      background-color: #e0e0e0;
+    }
+
+    .upgrade-item.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .upgrade-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .upgrade-cost {
+      color: #666;
+    }
+
+    .upgrade-description {
+      color: #666;
+      font-size: 0.9em;
+      font-style: italic;
+      margin: 5px 0;
+    }
+
+    .estates {
+      margin-top: 20px;
+    }
+
+    .estate {
+      background-color: #f0f0f0;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .estate-info {
+      margin-bottom: 10px;
+    }
+
+    .estate-info h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .estate-info p {
+      margin: 5px 0;
+      color: #666;
+    }
+
+    .estate-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .estate-actions button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .estate-actions button:hover {
+      background-color: #45a049;
+    }
+
+    .estate-actions button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .estate-solar-panels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .estate-solar-panel {
+      width: 30px;
+      height: 20px;
+      background: linear-gradient(135deg, #1e90ff, #104e8b);
+      border: 1px solid #4682B4;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .estate-solar-panel.tier-2 {
+      background: linear-gradient(135deg, #32cd32, #228b22);
+    }
+
+    .estate-solar-panel.tier-3 {
+      background: linear-gradient(135deg, #ffd700, #daa520);
+    }
+
+    .estate-solar-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 9px,
+        rgba(255, 255, 255, 0.1) 9px,
+        rgba(255, 255, 255, 0.1) 10px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 9px,
+        rgba(255, 255, 255, 0.1) 9px,
+        rgba(255, 255, 255, 0.1) 10px
+      );
+    }
+
+    .tax-timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #ff9800;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 0.8em;
+    }
+
+    /* House and roof styling */
+    .house {
+      width: 220px;
+      height: 180px;
+      margin: 20px auto;
+      position: relative;
+    }
+
+    .house-base {
+      width: 200px;
+      height: 100px;
+      background-color: #f5deb3;
+      border: 2px solid #8b4513;
+      position: absolute;
+      bottom: 0;
+      left: 10px;
+    }
+
+    .roof {
+      width: 240px;
+      height: 80px;
+      background-color: #8B4513;
+      position: relative;
+      margin: 0 auto;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      transition: width 0.5s, height 0.5s;
+    }
+
+    .roof-small {
+      width: 220px;
+      height: 70px;
+    }
+
+    .roof-medium {
+      width: 240px;
+      height: 80px;
+    }
+
+    .roof-large {
+      width: 260px;
+      height: 90px;
+    }
+
+    .door {
+      width: 30px;
+      height: 60px;
+      background-color: #8b4513;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+
+    .window {
+      width: 30px;
+      height: 30px;
+      background-color: #add8e6;
+      border: 2px solid #8b4513;
+      position: absolute;
+    }
+
+    .window-left {
+      bottom: 50px;
+      left: 40px;
+    }
+
+    .window-right {
+      bottom: 50px;
+      right: 40px;
+    }
+
+    /* Solar panel styling */
+    .solar-panel {
+      position: absolute;
+      width: 40px;
+      height: 25px;
+      background: linear-gradient(135deg, #1e90ff, #104e8b);
+      border: 1px solid #4682B4;
+      border-radius: 2px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2px;
+      z-index: 5;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .solar-panel:hover {
+      transform: scale(1.1);
+    }
+
+    .solar-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 9px,
+        rgba(255, 255, 255, 0.1) 9px,
+        rgba(255, 255, 255, 0.1) 10px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 9px,
+        rgba(255, 255, 255, 0.1) 9px,
+        rgba(255, 255, 255, 0.1) 10px
+      );
+      z-index: 6;
+    }
+
+    .panel-tier-1 {
+      background: linear-gradient(135deg, #1e90ff, #104e8b);
+    }
+
+    .panel-tier-2 {
+      background: linear-gradient(135deg, #32cd32, #228b22);
+    }
+
+    .panel-tier-3 {
+      background: linear-gradient(135deg, #ffd700, #daa520);
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .day-night-cycle {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, #87CEEB, #000033, #87CEEB);
+      background-size: 200% 100%;
+      animation: dayNightAnimation 120s linear infinite;
+    }
+
+    @keyframes dayNightAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Achievement notification */
+    .achievement {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 128, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.5s, transform 0.5s;
+    }
+
+    .achievement.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(10px);
+    }
+
+    /* Weather effects */
+    .weather {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+
+    .rain {
+      background-image: linear-gradient(to bottom, transparent, transparent 80%, rgba(0, 0, 255, 0.3) 80%, transparent 100%);
+      background-size: 5px 10px;
+      animation: rain 0.5s linear infinite;
+    }
+
+    @keyframes rain {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 10px; }
+    }
+
+    .clouds {
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 20%, transparent 80%),
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.8) 20%, transparent 80%);
+      background-size: 200px 200px;
+      animation: clouds 20s linear infinite;
+    }
+
+    @keyframes clouds {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 0; }
+    }
+
+    .stats-display {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .stats-title {
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .stat-item {
+      padding: 5px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+
+    .prestige-button {
+      background-color: #9c27b0;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .prestige-button:hover {
+      background-color: #7b1fa2;
+    }
+
+    /* Saving indicator */
+    .save-indicator {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .save-indicator.show {
+      opacity: 1;
+    }
+
+    /* Offline progress modal */
+    .offline-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+
+    .offline-modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .offline-modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 80%;
+      text-align: center;
+    }
+
+    .offline-modal-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    /* Custom cursors */
+    .cursor-upgrade {
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%2332cd32"><circle cx="12" cy="12" r="10"/></svg>') 12 12, auto;
+    }
+
+    .cursor-solar {
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%231e90ff"><circle cx="12" cy="12" r="10"/></svg>') 12 12, auto;
+    }
+
+    /* Ascension modal styling */
+    .ascension-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+
+    .ascension-modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .ascension-modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 80%;
+      text-align: center;
+    }
+
+    .ascension-bonuses {
+      margin-bottom: 20px;
+    }
+
+    .ascension-bonus {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .bonus-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .bonus-cost {
+      color: #666;
+    }
+
+    .bonus-level {
+      color: #666;
+      font-size: 0.9em;
+      font-style: italic;
+    }
+
+    .quests-panel {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .quest-display {
+      margin-bottom: 10px;
+    }
+
+    .quest-list {
+      margin-top: 10px;
+    }
+
+    .quest-item {
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 5px;
+    }
+
+    .quest-reward {
+      margin-top: 5px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .progress-bar {
+      height: 20px;
+      background-color: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background-color: #4CAF50;
+    }
+
+    .customization-panel {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .skin-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .skin-item {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .skin-item:hover {
+      transform: scale(1.05);
+    }
+
+    .skin-item.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skin-preview {
+      width: 100%;
+      height: 60px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+
+    .skin-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .skin-status {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .research-panel {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .research-tree {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .research-item {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .research-item:hover {
+      transform: scale(1.05);
+    }
+
+    .research-item.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .research-item.unlocked {
+      background-color: #e8f5e9;
+    }
+
+    .research-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .research-description {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .research-cost {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .research-requirements {
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .energy-types-panel {
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .energy-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .energy-type {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .energy-type.locked {
+      opacity: 0.5;
+    }
+
+    .energy-type-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .energy-type-efficiency {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .news-ticker {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      overflow: hidden;
+      z-index: 90;
+    }
+
+    .news-content {
+      white-space: nowrap;
+      animation: ticker 30s linear infinite;
+    }
+
+    @keyframes ticker {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Settings Modal */
+    .settings-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+    }
+
+    .settings-modal.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .settings-modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 80%;
+    }
+
+    .settings-section {
+        margin-bottom: 20px;
+    }
+
+    .settings-section h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .settings-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .settings-button:hover {
+        background-color: #45a049;
+    }
+
+    .settings-button.danger {
+        background-color: #f44336;
+    }
+
+    .settings-button.danger:hover {
+        background-color: #da190b;
+    }
+
+    .settings-toggle {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+    }
+
+    .settings-toggle label {
+        margin-right: 10px;
+    }
+
+    .settings-toggle input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .click-me-button {
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        transition: all 0.3s;
+        font-size: 1.1em;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .click-me-button:hover {
+        background-color: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .click-me-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .click-text {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 1.2em;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 1000;
+    }
+
+    .click-text.show {
+        opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="day-night-cycle"></div>
+  <div class="weather"></div>
+  
+  <div class="container">
+    <div class="header">
+      <h1>Solar Panel Clicker</h1>
+      <p>Click the sun to generate energy, then use that energy to upgrade your solar empire!</p>
+      <button id="settings-button" class="settings-button">Settings</button>
+      <button id="click-me-button" class="click-me-button">Click Me!</button>
+    </div>
+    
+    <div class="resources">
+      <div class="resource">
+        <div>Energy: <span id="energy">0</span></div>
+        <div>Per Click: <span id="energy-per-click">1</span></div>
+        <div>Passive: <span id="passive-energy">0</span>/s</div>
+      </div>
+      <div class="resource">
+        <div>Money: $<span id="money">0</span></div>
+        <div>Energy Price: $<span id="energy-price">0.1</span></div>
+        <button id="sell-energy" class="upgrade-item">Sell Energy</button>
+        <button id="increase-price" class="upgrade-item">Increase Price ($<span id="price-increase-cost">100</span>)</button>
+      </div>
+      <div class="resource">
+        <div>Estates: <span id="estate-count">0</span></div>
+        <div>Solar Panels: <span id="panel-count">0</span></div>
+      </div>
+      <div class="resource">
+        <div>Battery Storage: <span id="battery-storage">0</span>/<span id="battery-capacity">0</span></div>
+        <div>Efficiency: <span id="battery-efficiency">95</span>%</div>
+        <button id="upgrade-battery" class="upgrade-item">Upgrade Battery ($<span id="battery-upgrade-cost">500</span>)</button>
+      </div>
+    </div>
+    
+    <div class="game-area">
+      <div class="left-panel">
+        <div class="sun" id="sun"></div>
+        
+        <!-- Main House and Solar Panel Display -->
+        <div class="house" id="main-house">
+          <div class="roof" id="main-roof"></div>
+          <div class="house-base">
+            <div class="door"></div>
+            <div class="window window-left"></div>
+            <div class="window window-right"></div>
+          </div>
+        </div>
+        
+        <div class="estates" id="estates-container">
+          <h3>Your Estates</h3>
+          <div id="estates-list"></div>
+          <button id="buy-estate" class="upgrade-item">
+            <div class="upgrade-name">Buy New Estate</div>
+            <div class="upgrade-cost">Cost: $<span id="estate-cost">1000</span></div>
+          </button>
+        </div>
+        
+        <div class="quests-panel">
+          <h3>Active Quest</h3>
+          <div id="active-quest" class="quest-display">
+            <p>No active quest</p>
+          </div>
+          <h3>Available Quests</h3>
+          <div id="available-quests" class="quest-list"></div>
+        </div>
+        
+        <div class="stats-display">
+          <div class="stats-title">Statistics</div>
+          <div class="stats-grid">
+            <div class="stat-item">Total Energy Generated: <span id="total-energy-generated">0</span></div>
+            <div class="stat-item">Total Money Earned: $<span id="total-money-earned">0</span></div>
+            <div class="stat-item">Total Clicks: <span id="total-clicks">0</span></div>
+            <div class="stat-item">Total Taxes Paid: $<span id="total-taxes-paid">0</span></div>
+            <div class="stat-item">Offline Earnings: $<span id="offline-earnings">0</span></div>
+          </div>
+        </div>
+        
+        <button id="prestige-button" class="prestige-button">Prestige (Reset with bonuses)</button>
+      </div>
+      
+      <div class="right-panel">
+        <h3>Upgrades</h3>
+        <div class="upgrade-list" id="upgrades-list">
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('efficiency')">
+            <div class="upgrade-name">Solar Panel Efficiency</div>
+            <div class="upgrade-cost">Cost: <span id="efficiencyCost">100</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('durability')">
+            <div class="upgrade-name">Solar Panel Durability</div>
+            <div class="upgrade-cost">Cost: <span id="durabilityCost">150</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('automation')">
+            <div class="upgrade-name">Solar Panel Automation</div>
+            <div class="upgrade-cost">Cost: <span id="automationCost">200</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-solar" onclick="buySolarPanel()">
+            <div class="upgrade-name">Buy Solar Panel</div>
+            <div class="upgrade-cost">Cost: <span id="solarPanelCost">50</span> energy</div>
+          </div>
+          
+          <!-- Energy Upgrades -->
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('solarEfficiencyBoost')">
+            <div class="upgrade-name">Solar Efficiency Boost</div>
+            <div class="upgrade-description">Your panels absorb more sun!</div>
+            <div class="upgrade-cost">Cost: <span id="solarEfficiencyBoostCost">300</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('advancedSolarTech')">
+            <div class="upgrade-name">Advanced Solar Tech</div>
+            <div class="upgrade-description">Cutting-edge photovoltaic cells</div>
+            <div class="upgrade-cost">Cost: <span id="advancedSolarTechCost">500</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('autoCollector')">
+            <div class="upgrade-name">Auto Collector</div>
+            <div class="upgrade-description">Drones collect energy for you!</div>
+            <div class="upgrade-cost">Cost: <span id="autoCollectorCost">400</span> energy</div>
+          </div>
+          
+          <!-- Money Upgrades -->
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('batteryStorage')">
+            <div class="upgrade-name">Battery Storage</div>
+            <div class="upgrade-description">Store more energy to sell later</div>
+            <div class="upgrade-cost">Cost: <span id="batteryStorageCost">250</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('marketInsight')">
+            <div class="upgrade-name">Energy Market Insight</div>
+            <div class="upgrade-description">Predict market trends</div>
+            <div class="upgrade-cost">Cost: <span id="marketInsightCost">350</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('greenSubsidies')">
+            <div class="upgrade-name">Green Subsidies</div>
+            <div class="upgrade-description">Government rewards your clean energy!</div>
+            <div class="upgrade-cost">Cost: <span id="greenSubsidiesCost">450</span> energy</div>
+          </div>
+          
+          <!-- Estate & Solar Panel Upgrades -->
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('solarFarm')">
+            <div class="upgrade-name">Solar Farm</div>
+            <div class="upgrade-description">Turn an estate into a solar array</div>
+            <div class="upgrade-cost">Cost: <span id="solarFarmCost">1000</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('smartPanels')">
+            <div class="upgrade-name">Smart Panels</div>
+            <div class="upgrade-description">AI-optimized panels maximize output</div>
+            <div class="upgrade-cost">Cost: <span id="smartPanelsCost">600</span> energy</div>
+          </div>
+          
+          <!-- Environmental Upgrades -->
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('weatherController')">
+            <div class="upgrade-name">Weather Controller</div>
+            <div class="upgrade-description">Control the weather for better energy</div>
+            <div class="upgrade-cost">Cost: <span id="weatherControllerCost">800</span> energy</div>
+          </div>
+          <div class="upgrade-item cursor-upgrade" onclick="buyUpgrade('nightPanels')">
+            <div class="upgrade-name">Night Panels</div>
+            <div class="upgrade-description">Harvest moonlight (sorta)</div>
+            <div class="upgrade-cost">Cost: <span id="nightPanelsCost">700</span> energy</div>
+          </div>
+        </div>
+
+        <div class="research-panel">
+          <h3>Research Lab</h3>
+          <div class="research-points">Research Points: <span id="research-points">0</span></div>
+          <div class="research-tree" id="research-tree"></div>
+        </div>
+
+        <div class="energy-types-panel">
+          <h3>Energy Sources</h3>
+          <div class="energy-types" id="energy-types"></div>
+        </div>
+
+        <div class="news-ticker">
+          <div class="news-content" id="news-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="notification" id="notification"></div>
+  <div class="achievement" id="achievement"></div>
+  <div class="save-indicator" id="save-indicator">Game saved!</div>
+  
+  <div class="offline-modal" id="offline-modal">
+    <div class="offline-modal-content">
+      <h2>Welcome Back!</h2>
+      <p>While you were away, your solar panels generated:</p>
+      <p><span id="offline-energy">0</span> energy</p>
+      <p>Worth approximately $<span id="offline-money">0</span></p>
+      <button id="collect-offline" class="offline-modal-button">Collect</button>
+    </div>
+  </div>
+
+  <div class="ascension-modal" id="ascension-modal">
+    <div class="ascension-modal-content">
+      <h2>Solar Ascension Complete! 🌟</h2>
+      <p>You've earned <span id="ascension-points">0</span> Ascension Points!</p>
+      <div class="ascension-bonuses">
+        <h3>Available Bonuses:</h3>
+        <div class="ascension-bonus" onclick="buyAscensionBonus('energyMultiplier')">
+          <div class="bonus-name">Energy Multiplier</div>
+          <div class="bonus-cost">Cost: <span id="energyMultiplierCost">0</span> points</div>
+          <div class="bonus-level">Level: <span id="energyMultiplierLevel">0</span></div>
+        </div>
+        <div class="ascension-bonus" onclick="buyAscensionBonus('passiveIncome')">
+          <div class="bonus-name">Passive Income</div>
+          <div class="bonus-cost">Cost: <span id="passiveIncomeCost">0</span> points</div>
+          <div class="bonus-level">Level: <span id="passiveIncomeLevel">0</span></div>
+        </div>
+        <div class="ascension-bonus" onclick="buyAscensionBonus('panelEfficiency')">
+          <div class="bonus-name">Panel Efficiency</div>
+          <div class="bonus-cost">Cost: <span id="panelEfficiencyCost">0</span> points</div>
+          <div class="bonus-level">Level: <span id="panelEfficiencyLevel">0</span></div>
+        </div>
+        <div class="ascension-bonus" onclick="buyAscensionBonus('weatherResistance')">
+          <div class="bonus-name">Weather Resistance</div>
+          <div class="bonus-cost">Cost: <span id="weatherResistanceCost">0</span> points</div>
+          <div class="bonus-level">Level: <span id="weatherResistanceLevel">0</span></div>
+        </div>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()">Continue</button>
+    </div>
+  </div>
+
+  <div class="customization-panel">
+    <h3>Panel Customization</h3>
+    <div id="panel-skins" class="skin-list"></div>
+  </div>
+
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-modal-content">
+        <h2>Settings</h2>
+        
+        <div class="settings-section">
+            <h3>Game Settings</h3>
+            <div class="settings-toggle">
+                <label for="notifications-toggle">Enable Notifications</label>
+                <input type="checkbox" id="notifications-toggle" checked>
+            </div>
+            <div class="settings-toggle">
+                <label for="news-toggle">Show News Ticker</label>
+                <input type="checkbox" id="news-toggle" checked>
+            </div>
+            <div class="settings-toggle">
+                <label for="animations-toggle">Enable Animations</label>
+                <input type="checkbox" id="animations-toggle" checked>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Save & Load</h3>
+            <button class="settings-button" onclick="saveGame()">Save Game</button>
+            <button class="settings-button" onclick="loadGame()">Load Game</button>
+            <button class="settings-button" onclick="exportSave()">Export Save</button>
+            <button class="settings-button" onclick="importSave()">Import Save</button>
+        </div>
+
+        <div class="settings-section">
+            <h3>Reset Options</h3>
+            <button class="settings-button danger" onclick="resetGame()">Reset Game</button>
+            <button class="settings-button danger" onclick="resetSettings()">Reset Settings</button>
+        </div>
+
+        <button class="settings-button" onclick="closeSettings()">Close</button>
+    </div>
+  </div>
+
+  <div id="click-text" class="click-text"></div>
+
+  <script>
+    // Game state
+    const gameState = {
+        energy: 0,
+        money: 0,
+        clickMultiplier: 1,
+        autoClickers: 0,
+        autoClickerCost: 10,
+        solarPanels: 0,
+        solarPanelCost: 50,
+        solarPanelEfficiency: 1,
+        energyPrice: 0.1,
+        priceIncreaseCost: 100,
+        passiveEnergy: 0,
+        estates: [],
+        estateCost: 1000,
+        taxRate: 0.1,
+        taxInterval: 60000,
+        lastTaxCollection: Date.now(),
+        solarPanelUpgrades: {
+            efficiency: 0,
+            durability: 0,
+            automation: 0,
+            solarEfficiencyBoost: 0,
+            advancedSolarTech: 0,
+            autoCollector: 0,
+            batteryStorage: 0,
+            marketInsight: 0,
+            greenSubsidies: 0,
+            solarFarm: 0,
+            smartPanels: 0,
+            weatherController: 0,
+            nightPanels: 0
+        },
+        solarPanelUpgradeCosts: {
+            efficiency: 100,
+            durability: 150,
+            automation: 200,
+            solarEfficiencyBoost: 300,
+            advancedSolarTech: 500,
+            autoCollector: 400,
+            batteryStorage: 250,
+            marketInsight: 350,
+            greenSubsidies: 450,
+            solarFarm: 1000,
+            smartPanels: 600,
+            weatherController: 800,
+            nightPanels: 700
+        },
+        stats: {
+            totalEnergy: 0,
+            totalMoney: 0,
+            totalClicks: 0,
+            solarPanelsPlaced: 0,
+            upgradesPurchased: 0,
+            timePlayed: 0,
+            totalTaxesPaid: 0
+        },
+        achievements: {
+            firstClick: false,
+            firstSolarPanel: false,
+            firstUpgrade: false,
+            firstEstate: false,
+            energyMilestone: false,
+            moneyMilestone: false,
+            taxMilestone: false
+        },
+        panelSkins: {
+            unlocked: ['default'],
+            active: 'default',
+            available: {
+                default: {
+                    name: 'Classic Blue',
+                    gradient: 'linear-gradient(135deg, #1e90ff, #104e8b)'
+                },
+                golden: {
+                    name: 'Golden',
+                    gradient: 'linear-gradient(135deg, #ffd700, #daa520)'
+                },
+                neon: {
+                    name: 'Neon',
+                    gradient: 'linear-gradient(135deg, #00ff00, #00cc00)',
+                    glow: '0 0 10px #00ff00'
+                },
+                crystal: {
+                    name: 'Crystal',
+                    gradient: 'linear-gradient(135deg, #ffffff, #e6e6e6)',
+                    border: '2px solid #ffffff'
+                }
+            }
+        },
+        lastSave: Date.now(),
+        lastUpdate: Date.now(),
+        dayNightCycle: 0,
+        weather: 'clear',
+        weatherEffects: {
+            clear: { energyMultiplier: 1 },
+            cloudy: { energyMultiplier: 0.7 },
+            rainy: { energyMultiplier: 0.5 }
+        },
+        batteries: {
+            unlocked: false,
+            capacity: 0,
+            stored: 0,
+            efficiency: 0.95,
+            maxCapacity: 1000,
+            upgradeCost: 500
+        },
+        nightPenalty: 0.8,
+        prestige: {
+            level: 0,
+            multiplier: 1,
+            cost: 1000000,
+            ascensionPoints: 0,
+            ascensionBonuses: {
+                energyMultiplier: 0,
+                passiveIncome: 0,
+                panelEfficiency: 0,
+                weatherResistance: 0
+            },
+            ascensionCosts: {
+                energyMultiplier: 1,
+                passiveIncome: 1,
+                panelEfficiency: 1,
+                weatherResistance: 1
+            }
+        },
+        research: {
+            points: 0,
+            unlocked: [],
+            available: {
+                selfCleaning: {
+                    name: "Self-Cleaning Panels",
+                    description: "Panels automatically clean themselves, reducing efficiency loss",
+                    cost: 100,
+                    requirements: [],
+                    effects: {
+                        efficiency: 1.1,
+                        maintenance: -0.1
+                    }
+                },
+                aiTracking: {
+                    name: "AI Sun Tracking",
+                    description: "Advanced AI optimizes panel angles for maximum efficiency",
+                    cost: 200,
+                    requirements: ["selfCleaning"],
+                    effects: {
+                        efficiency: 1.2,
+                        nightPenalty: 0.9
+                    }
+                },
+                quantumStorage: {
+                    name: "Quantum Storage",
+                    description: "Revolutionary energy storage technology",
+                    cost: 300,
+                    requirements: ["aiTracking"],
+                    effects: {
+                        batteryEfficiency: 1.3,
+                        batteryCapacity: 2
+                    }
+                },
+                weatherControl: {
+                    name: "Weather Control",
+                    description: "Advanced technology to manipulate local weather patterns",
+                    cost: 400,
+                    requirements: ["quantumStorage"],
+                    effects: {
+                        weatherResistance: 1.2,
+                        clearWeatherChance: 1.5
+                    }
+                }
+            }
+        },
+        energyTypes: {
+            solar: {
+                unlocked: true,
+                efficiency: 1,
+                weatherDependent: true
+            },
+            wind: {
+                unlocked: false,
+                efficiency: 0.8,
+                weatherDependent: true,
+                windSpeed: 1
+            },
+            hydro: {
+                unlocked: false,
+                efficiency: 0.9,
+                weatherDependent: false,
+                waterLevel: 1
+            },
+            geothermal: {
+                unlocked: false,
+                efficiency: 0.7,
+                weatherDependent: false,
+                heatLevel: 1
+            }
+        },
+        news: {
+            lastUpdate: Date.now(),
+            currentNews: [],
+            availableNews: [
+                "Solar power gains popularity in local communities!",
+                "Shady clouds protest solar expansion in the area.",
+                "New government incentives for renewable energy!",
+                "Scientists discover more efficient solar panel technology.",
+                "Local wildlife adapts to solar farm presence.",
+                "Weather patterns show increased solar potential.",
+                "Community celebrates solar energy milestone!",
+                "Innovative solar storage solutions emerge.",
+                "Solar panels become more affordable!",
+                "Environmental impact of solar farms under study."
+            ]
+        },
+        settings: {
+            notifications: true,
+            showNews: true,
+            animations: true
+        },
+        clickTexts: [
+            "Solar power is the future!",
+            "Click for more energy!",
+            "Keep those panels shining!",
+            "Every click counts!",
+            "You're doing great!",
+            "Solar energy is clean energy!",
+            "Power up your empire!",
+            "Click to save the planet!",
+            "More clicks, more power!",
+            "You're a solar superstar!"
+        ]
+    };
+
+    // Estate class
+    class Estate {
+        constructor(id, level = 1) {
+            this.id = id;
+            this.level = level;
+            this.solarPanels = [];
+            this.income = 100 * level;
+            this.lastTaxCollection = Date.now();
+            this.maxPanels = 5 + (level - 1) * 2;
+        }
+
+        addSolarPanel(tier = 1) {
+            if (this.solarPanels.length < this.maxPanels) {
+                this.solarPanels.push({
+                    tier: tier,
+                    efficiency: tier * 0.5,
+                    lastGenerated: Date.now()
+                });
+                return true;
+            }
+            return false;
+        }
+
+        getPassiveEnergy() {
+            return this.solarPanels.reduce((total, panel) => {
+                return total + panel.efficiency;
+            }, 0);
+        }
+
+        upgrade() {
+            this.level++;
+            this.income *= 1.5;
+            this.maxPanels += 2;
+        }
+    }
+
+    // DOM Elements
+    const sun = document.getElementById('sun');
+    const energyDisplay = document.getElementById('energy');
+    const moneyDisplay = document.getElementById('money');
+    const autoClickerCostDisplay = document.getElementById('autoClickerCost');
+    const solarPanelCostDisplay = document.getElementById('solarPanelCost');
+    const upgradeList = document.getElementById('upgradeList');
+    const estatesContainer = document.getElementById('estates');
+    const statsDisplay = document.getElementById('stats');
+    const prestigeButton = document.getElementById('prestigeButton');
+    const saveIndicator = document.getElementById('saveIndicator');
+    const offlineModal = document.getElementById('offlineModal');
+    const offlineEarnings = document.getElementById('offlineEarnings');
+    const collectOfflineButton = document.getElementById('collect-offline');
+
+    // Initialize game
+    function initGame() {
+        loadGame();
+        updateDisplays();
+        setupEventListeners();
+        startGameLoop();
+        checkOfflineProgress();
+        updateQuestDisplay();
+        updatePanelSkins();
+        updateResearchTree();
+        updateEnergyTypes();
+        updateNewsTicker();
+        setInterval(updateNewsTicker, 10000);
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+        sun.addEventListener('click', handleSunClick);
+        document.getElementById('buy-estate').addEventListener('click', buyEstate);
+        document.getElementById('prestige-button').addEventListener('click', handlePrestige);
+        document.getElementById('collect-offline').addEventListener('click', collectOfflineEarnings);
+        document.getElementById('sell-energy').addEventListener('click', sellEnergy);
+        document.getElementById('increase-price').addEventListener('click', increaseEnergyPrice);
+        document.getElementById('upgrade-battery').addEventListener('click', upgradeBattery);
+        document.getElementById('settings-button').addEventListener('click', showSettings);
+        document.getElementById('click-me-button').addEventListener('click', showClickText);
+    }
+
+    // Game Loop
+    function startGameLoop() {
+        setInterval(() => {
+            updateGame();
+            saveGame();
+        }, 1000);
+    }
+
+    // Update Game State
+    function updateGame() {
+        const now = Date.now();
+        const deltaTime = (now - gameState.lastUpdate) / 1000;
+        gameState.lastUpdate = now;
+
+        // Prevent negative deltaTime
+        if (deltaTime < 0) return;
+
+        // Cap deltaTime to prevent large jumps
+        const cappedDeltaTime = Math.min(deltaTime, 1);
+
+        // Update day/night cycle
+        gameState.dayNightCycle = (gameState.dayNightCycle + cappedDeltaTime / 120) % 1;
+        updateDayNightCycle();
+
+        // Update weather
+        if (Math.random() < 0.001) {
+            changeWeather();
+        }
+
+        // Calculate passive energy generation
+        const weatherMultiplier = gameState.weatherEffects[gameState.weather].energyMultiplier;
+        const nightMultiplier = Math.sin(gameState.dayNightCycle * Math.PI * 2) > 0 ? 1 : gameState.nightPenalty;
+        let totalPassiveEnergy = 0;
+
+        // Auto clicker production
+        const autoClickerProduction = gameState.autoClickers * gameState.clickMultiplier * cappedDeltaTime * nightMultiplier;
+        totalPassiveEnergy += autoClickerProduction;
+
+        // Estate solar panel production
+        gameState.estates.forEach(estate => {
+            const estateEnergy = estate.getPassiveEnergy() * weatherMultiplier * nightMultiplier * cappedDeltaTime;
+            totalPassiveEnergy += estateEnergy;
+        });
+
+        // Update battery storage if unlocked
+        if (gameState.batteries.unlocked) {
+            if (gameState.energy > 0) {
+                const spaceAvailable = gameState.batteries.maxCapacity - gameState.batteries.stored;
+                const energyToStore = Math.min(gameState.energy, spaceAvailable);
+                gameState.batteries.stored += energyToStore * gameState.batteries.efficiency;
+                gameState.energy -= energyToStore;
+            }
+            
+            // Use stored energy during night or bad weather
+            if (gameState.weather !== 'clear' || Math.sin(gameState.dayNightCycle * Math.PI * 2) <= 0) {
+                const energyNeeded = totalPassiveEnergy * 0.2; // Use 20% of stored energy
+                const energyToUse = Math.min(gameState.batteries.stored, energyNeeded);
+                gameState.batteries.stored -= energyToUse;
+                totalPassiveEnergy += energyToUse;
+            }
+        }
+
+        gameState.energy += totalPassiveEnergy;
+        gameState.passiveEnergy = totalPassiveEnergy / cappedDeltaTime;
+        gameState.stats.totalEnergy += totalPassiveEnergy;
+
+        // Estate tax collection
+        if (now - gameState.lastTaxCollection >= gameState.taxInterval) {
+            collectTaxes();
+        }
+
+        // Update stats
+        gameState.stats.timePlayed += cappedDeltaTime;
+
+        checkQuestProgress();
+        updateDisplays();
+
+        // Generate research points based on energy production
+        gameState.research.points += gameState.passiveEnergy * 0.01;
+        
+        // Update research points display
+        document.getElementById('research-points').textContent = Math.floor(gameState.research.points);
+        
+        // Check for energy type unlocks
+        if (gameState.stats.totalEnergy >= 10000 && !gameState.energyTypes.wind.unlocked) {
+            gameState.energyTypes.wind.unlocked = true;
+            showNotification('Wind energy technology unlocked!');
+            updateEnergyTypes();
+        }
+        if (gameState.stats.totalEnergy >= 50000 && !gameState.energyTypes.hydro.unlocked) {
+            gameState.energyTypes.hydro.unlocked = true;
+            showNotification('Hydroelectric power unlocked!');
+            updateEnergyTypes();
+        }
+        if (gameState.stats.totalEnergy >= 100000 && !gameState.energyTypes.geothermal.unlocked) {
+            gameState.energyTypes.geothermal.unlocked = true;
+            showNotification('Geothermal energy unlocked!');
+            updateEnergyTypes();
+        }
+    }
+
+    // Handle Sun Click
+    function handleSunClick() {
+        const clickEnergy = gameState.clickMultiplier * (1 + gameState.prestige.multiplier);
+        gameState.energy += clickEnergy;
+        gameState.stats.totalEnergy += clickEnergy;
+        gameState.stats.totalClicks++;
+        
+        // Update energy display
+        energyDisplay.textContent = Math.floor(gameState.energy);
+        document.getElementById('energy-per-click').textContent = Math.floor(clickEnergy);
+        
+        checkAchievements();
+        updateDisplays();
+    }
+
+    // Buy Auto Clicker
+    function buyAutoClicker() {
+        if (gameState.energy >= gameState.autoClickerCost) {
+            gameState.energy -= gameState.autoClickerCost;
+            gameState.autoClickers++;
+            gameState.autoClickerCost = Math.floor(gameState.autoClickerCost * 1.15);
+            updateDisplays();
+        }
+    }
+
+    // Buy Solar Panel
+    function buySolarPanel() {
+        if (gameState.energy >= gameState.solarPanelCost) {
+            gameState.energy -= gameState.solarPanelCost;
+            gameState.solarPanels++;
+            gameState.clickMultiplier++; // Increase energy per click
+            gameState.solarPanelCost = Math.floor(gameState.solarPanelCost * 1.2);
+            gameState.stats.solarPanelsPlaced++;
+            
+            // Add visible solar panel to the house
+            const house = document.getElementById('main-house');
+            const solarPanel = document.createElement('div');
+            solarPanel.className = 'solar-panel panel-tier-1';
+            solarPanel.style.left = Math.random() * 160 + 'px';
+            solarPanel.style.top = Math.random() * 100 + 'px';
+            house.appendChild(solarPanel);
+            
+            updateDisplays();
+            showNotification(`Bought a solar panel! Energy per click increased to ${gameState.clickMultiplier}`);
+        }
+    }
+
+    // Buy Upgrade
+    function buyUpgrade(upgradeType) {
+        const cost = gameState.solarPanelUpgradeCosts[upgradeType];
+        if (gameState.energy >= cost) {
+            gameState.energy -= cost;
+            gameState.solarPanelUpgrades[upgradeType]++;
+            gameState.solarPanelUpgradeCosts[upgradeType] = Math.floor(cost * 1.5);
+            
+            switch(upgradeType) {
+                case 'efficiency':
+                    gameState.solarPanelEfficiency *= 1.2;
+                    // Update solar panel appearance
+                    document.querySelectorAll('.solar-panel').forEach(panel => {
+                        panel.className = `solar-panel panel-tier-${Math.min(3, gameState.solarPanelUpgrades.efficiency + 1)}`;
+                    });
+                    break;
+                case 'durability':
+                    // Implement durability mechanics
+                    break;
+                case 'automation':
+                    gameState.autoClickers++; // Add an auto clicker
+                    showNotification(`Added an auto clicker! You now have ${gameState.autoClickers} auto clickers`);
+                    break;
+                case 'solarEfficiencyBoost':
+                    gameState.solarPanelEfficiency *= 1.1;
+                    showNotification('Solar panel efficiency increased by 10%!');
+                    break;
+                case 'advancedSolarTech':
+                    gameState.clickMultiplier *= 2;
+                    showNotification('Energy per click doubled!');
+                    break;
+                case 'autoCollector':
+                    gameState.passiveEnergy += 2;
+                    showNotification('Added 2 energy/sec to passive generation!');
+                    break;
+                case 'batteryStorage':
+                    // Implement battery storage mechanics
+                    showNotification('Battery storage capacity increased!');
+                    break;
+                case 'marketInsight':
+                    gameState.energyPrice *= 1.1;
+                    showNotification('Energy selling price increased by 10%!');
+                    break;
+                case 'greenSubsidies':
+                    // Add passive money generation based on energy production
+                    const subsidyAmount = gameState.passiveEnergy * 0.1;
+                    gameState.money += subsidyAmount;
+                    showNotification(`Received $${subsidyAmount.toFixed(2)} in green subsidies!`);
+                    break;
+                case 'solarFarm':
+                    if (gameState.estates.length > 0) {
+                        const estate = gameState.estates[gameState.estates.length - 1];
+                        estate.maxPanels *= 2;
+                        showNotification('Converted an estate into a solar farm!');
+                    }
+                    break;
+                case 'smartPanels':
+                    gameState.solarPanelEfficiency *= 1.2;
+                    showNotification('Smart panels optimize energy production!');
+                    break;
+                case 'weatherController':
+                    // Temporarily disable rain and increase energy
+                    gameState.weather = 'clear';
+                    const weatherElement = document.querySelector('.weather');
+                    weatherElement.className = 'weather clear';
+                    weatherElement.style.opacity = '0';
+                    setTimeout(() => {
+                        changeWeather();
+                    }, 30000);
+                    showNotification('Weather controlled for 30 seconds!');
+                    break;
+                case 'nightPanels':
+                    // Reduce night penalty
+                    gameState.nightPenalty = Math.max(0.5, gameState.nightPenalty - 0.1);
+                    showNotification('Night energy penalty reduced!');
+                    break;
+            }
+            
+            gameState.stats.upgradesPurchased++;
+            updateDisplays();
+        }
+    }
+
+    // Buy Estate
+    function buyEstate() {
+        if (gameState.money >= gameState.estateCost) {
+            gameState.money -= gameState.estateCost;
+            const estate = new Estate(Date.now());
+            gameState.estates.push(estate);
+            gameState.estateCost = Math.floor(gameState.estateCost * 1.5);
+            
+            // Add estate to the list
+            const estatesList = document.getElementById('estates-list');
+            const estateElement = document.createElement('div');
+            estateElement.className = 'estate';
+            estateElement.id = `estate-${estate.id}`;
+            estateElement.innerHTML = `
+                <div class="estate-info">
+                    <h4>Estate Level ${estate.level}</h4>
+                    <p>Income: $${estate.income}/min</p>
+                    <p>Solar Panels: ${estate.solarPanels.length}/${estate.maxPanels}</p>
+                </div>
+                <div class="estate-actions">
+                    <button onclick="addSolarPanelToEstate(${estate.id})">Add Solar Panel</button>
+                    <button onclick="upgradeEstate(${estate.id})">Upgrade Estate</button>
+                </div>
+            `;
+            estatesList.appendChild(estateElement);
+            
+            if (!gameState.achievements.firstEstate) {
+                unlockAchievement('First Estate!');
+                gameState.achievements.firstEstate = true;
+            }
+            
+            updateDisplays();
+        }
+    }
+
+    // Add Solar Panel to Estate
+    function addSolarPanelToEstate(estateId) {
+        const estate = gameState.estates.find(e => e.id === estateId);
+        if (estate && gameState.energy >= gameState.solarPanelCost) {
+            if (estate.addSolarPanel()) {
+                gameState.energy -= gameState.solarPanelCost;
+                gameState.solarPanelCost = Math.floor(gameState.solarPanelCost * 1.2);
+                gameState.stats.solarPanelsPlaced++;
+                
+                // Update estate display
+                const estateElement = document.getElementById(`estate-${estateId}`);
+                const panelCount = estateElement.querySelector('p:nth-child(3)');
+                panelCount.textContent = `Solar Panels: ${estate.solarPanels.length}/${estate.maxPanels}`;
+                
+                updateDisplays();
+            }
+        }
+    }
+
+    // Upgrade Estate
+    function upgradeEstate(estateId) {
+        const estate = gameState.estates.find(e => e.id === estateId);
+        const upgradeCost = Math.floor(gameState.estateCost * 0.5);
+        
+        if (estate && gameState.money >= upgradeCost) {
+            gameState.money -= upgradeCost;
+            estate.upgrade();
+            
+            // Update estate display
+            const estateElement = document.getElementById(`estate-${estateId}`);
+            const levelInfo = estateElement.querySelector('h4');
+            const incomeInfo = estateElement.querySelector('p:nth-child(2)');
+            const panelCount = estateElement.querySelector('p:nth-child(3)');
+            
+            levelInfo.textContent = `Estate Level ${estate.level}`;
+            incomeInfo.textContent = `Income: $${estate.income}/min`;
+            panelCount.textContent = `Solar Panels: ${estate.solarPanels.length}/${estate.maxPanels}`;
+            
+            updateDisplays();
+        }
+    }
+
+    // Collect Taxes
+    function collectTaxes() {
+        const now = Date.now();
+        let totalTaxes = 0;
+        
+        gameState.estates.forEach(estate => {
+            const timeSinceLastCollection = (now - estate.lastTaxCollection) / 1000;
+            const taxAmount = estate.income * gameState.taxRate * timeSinceLastCollection;
+            gameState.money += taxAmount;
+            totalTaxes += taxAmount;
+            estate.lastTaxCollection = now;
+        });
+        
+        gameState.lastTaxCollection = now;
+        gameState.stats.totalTaxesPaid += totalTaxes;
+        
+        // Check for tax milestone achievement
+        if (!gameState.achievements.taxMilestone && gameState.stats.totalTaxesPaid >= 10000) {
+            unlockAchievement('Tax Master!');
+            gameState.achievements.taxMilestone = true;
+        }
+    }
+
+    // Handle Prestige
+    function handlePrestige() {
+        if (gameState.money >= gameState.prestige.cost) {
+            // Calculate ascension points based on achievements and progress
+            const ascensionPoints = Math.floor(
+                (gameState.stats.totalEnergy / 10000) +
+                (gameState.stats.totalMoney / 100000) +
+                (gameState.estates.length * 2) +
+                (Object.values(gameState.achievements).filter(a => a).length * 5)
+            );
+            
+            gameState.prestige.level++;
+            gameState.prestige.ascensionPoints += ascensionPoints;
+            gameState.prestige.multiplier *= 1.5;
+            gameState.prestige.cost *= 2;
+            
+            // Reset game state
+            gameState.energy = 0;
+            gameState.money = 0;
+            gameState.autoClickers = 0;
+            gameState.solarPanels = 0;
+            gameState.estates = [];
+            
+            // Remove all solar panels
+            document.querySelectorAll('.solar-panel').forEach(panel => panel.remove());
+            
+            // Keep prestige-related stats
+            gameState.stats.totalEnergy = 0;
+            gameState.stats.totalMoney = 0;
+            gameState.stats.totalClicks = 0;
+            
+            // Show ascension modal
+            showAscensionModal(ascensionPoints);
+            
+            updateDisplays();
+        }
+    }
+
+    // Show Ascension Modal
+    function showAscensionModal(points) {
+        const modal = document.createElement('div');
+        modal.className = 'ascension-modal';
+        modal.innerHTML = `
+            <div class="ascension-modal-content">
+                <h2>Solar Ascension Complete! 🌟</h2>
+                <p>You've earned ${points} Ascension Points!</p>
+                <div class="ascension-bonuses">
+                    <h3>Available Bonuses:</h3>
+                    <div class="ascension-bonus" onclick="buyAscensionBonus('energyMultiplier')">
+                        <div class="bonus-name">Energy Multiplier</div>
+                        <div class="bonus-cost">Cost: ${gameState.prestige.ascensionCosts.energyMultiplier} points</div>
+                        <div class="bonus-level">Level: ${gameState.prestige.ascensionBonuses.energyMultiplier}</div>
+                    </div>
+                    <div class="ascension-bonus" onclick="buyAscensionBonus('passiveIncome')">
+                        <div class="bonus-name">Passive Income</div>
+                        <div class="bonus-cost">Cost: ${gameState.prestige.ascensionCosts.passiveIncome} points</div>
+                        <div class="bonus-level">Level: ${gameState.prestige.ascensionBonuses.passiveIncome}</div>
+                    </div>
+                    <div class="ascension-bonus" onclick="buyAscensionBonus('panelEfficiency')">
+                        <div class="bonus-name">Panel Efficiency</div>
+                        <div class="bonus-cost">Cost: ${gameState.prestige.ascensionCosts.panelEfficiency} points</div>
+                        <div class="bonus-level">Level: ${gameState.prestige.ascensionBonuses.panelEfficiency}</div>
+                    </div>
+                    <div class="ascension-bonus" onclick="buyAscensionBonus('weatherResistance')">
+                        <div class="bonus-name">Weather Resistance</div>
+                        <div class="bonus-cost">Cost: ${gameState.prestige.ascensionCosts.weatherResistance} points</div>
+                        <div class="bonus-level">Level: ${gameState.prestige.ascensionBonuses.weatherResistance}</div>
+                    </div>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()">Continue</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    // Buy Ascension Bonus
+    function buyAscensionBonus(bonusType) {
+        const cost = gameState.prestige.ascensionCosts[bonusType];
+        if (gameState.prestige.ascensionPoints >= cost) {
+            gameState.prestige.ascensionPoints -= cost;
+            gameState.prestige.ascensionBonuses[bonusType]++;
+            gameState.prestige.ascensionCosts[bonusType] = Math.floor(cost * 1.5);
+            
+            // Apply bonus effects
+            switch(bonusType) {
+                case 'energyMultiplier':
+                    gameState.prestige.multiplier *= 1.1;
+                    break;
+                case 'passiveIncome':
+                    gameState.passiveEnergy += 1;
+                    break;
+                case 'panelEfficiency':
+                    gameState.solarPanelEfficiency *= 1.1;
+                    break;
+                case 'weatherResistance':
+                    Object.keys(gameState.weatherEffects).forEach(weather => {
+                        gameState.weatherEffects[weather].energyMultiplier *= 1.1;
+                    });
+                    break;
+            }
+            
+            // Update modal
+            const modal = document.querySelector('.ascension-modal');
+            if (modal) {
+                modal.remove();
+                showAscensionModal(0);
+            }
+            
+            updateDisplays();
+        }
+    }
+
+    // Update Displays
+    function updateDisplays() {
+        energyDisplay.textContent = Math.floor(gameState.energy);
+        moneyDisplay.textContent = Math.floor(gameState.money);
+        document.getElementById('energy-per-click').textContent = Math.floor(gameState.clickMultiplier * (1 + gameState.prestige.multiplier));
+        document.getElementById('passive-energy').textContent = Math.floor(gameState.passiveEnergy);
+        document.getElementById('panel-count').textContent = gameState.stats.solarPanelsPlaced;
+        document.getElementById('estate-count').textContent = gameState.estates.length;
+        document.getElementById('energy-price').textContent = gameState.energyPrice.toFixed(2);
+        document.getElementById('price-increase-cost').textContent = Math.floor(gameState.priceIncreaseCost);
+        
+        // Update upgrade costs
+        Object.keys(gameState.solarPanelUpgradeCosts).forEach(upgradeType => {
+            const costElement = document.getElementById(`${upgradeType}Cost`);
+            if (costElement) {
+                costElement.textContent = Math.floor(gameState.solarPanelUpgradeCosts[upgradeType]);
+            }
+        });
+        
+        // Update stats
+        document.getElementById('total-energy-generated').textContent = Math.floor(gameState.stats.totalEnergy);
+        document.getElementById('total-money-earned').textContent = Math.floor(gameState.stats.totalMoney);
+        document.getElementById('total-clicks').textContent = gameState.stats.totalClicks;
+        document.getElementById('total-taxes-paid').textContent = Math.floor(gameState.stats.totalTaxesPaid);
+        
+        // Update prestige button
+        if (prestigeButton) {
+            prestigeButton.style.display = gameState.money >= gameState.prestige.cost ? 'block' : 'none';
+        }
+        
+        // Update battery storage if unlocked
+        if (gameState.batteries.unlocked) {
+            document.getElementById('battery-storage').textContent = Math.floor(gameState.batteries.stored);
+            document.getElementById('battery-capacity').textContent = Math.floor(gameState.batteries.maxCapacity);
+            document.getElementById('battery-efficiency').textContent = Math.floor(gameState.batteries.efficiency * 100);
+            document.getElementById('battery-upgrade-cost').textContent = Math.floor(gameState.batteries.upgradeCost);
+        }
+    }
+
+    // Save Game
+    function saveGame() {
+        try {
+            localStorage.setItem('solarGame', JSON.stringify(gameState));
+            showSaveIndicator();
+        } catch (error) {
+            console.error('Error saving game:', error);
+            showNotification('Error saving game!');
+        }
+    }
+
+    // Load Game
+    function loadGame() {
+        try {
+            const savedGame = localStorage.getItem('solarGame');
+            if (savedGame) {
+                const parsedGame = JSON.parse(savedGame);
+                Object.assign(gameState, parsedGame);
+                updateDisplays();
+                showNotification('Game loaded successfully!');
+            }
+        } catch (error) {
+            console.error('Error loading game:', error);
+            showNotification('Error loading game!');
+        }
+    }
+
+    // Check Offline Progress
+    function checkOfflineProgress() {
+        const lastSave = localStorage.getItem('lastSave');
+        if (lastSave) {
+            const offlineTime = (Date.now() - parseInt(lastSave)) / 1000;
+            if (offlineTime > 0) {
+                const offlineEarnings = calculateOfflineEarnings(offlineTime);
+                showOfflineModal(offlineEarnings);
+            }
+        }
+        localStorage.setItem('lastSave', Date.now().toString());
+    }
+
+    // Calculate Offline Earnings
+    function calculateOfflineEarnings(offlineTime) {
+        const autoClickerEarnings = gameState.autoClickers * gameState.clickMultiplier * offlineTime;
+        const solarPanelEarnings = gameState.solarPanels * gameState.solarPanelEfficiency * offlineTime;
+        return {
+            energy: autoClickerEarnings + solarPanelEarnings,
+            money: gameState.estates.reduce((total, estate) => {
+                return total + (estate.income * gameState.taxRate * offlineTime);
+            }, 0)
+        };
+    }
+
+    // Show Offline Modal
+    function showOfflineModal(earnings) {
+        offlineEarnings.textContent = `Energy: ${Math.floor(earnings.energy)}, Money: ${Math.floor(earnings.money)}`;
+        offlineModal.classList.add('show');
+    }
+
+    // Collect Offline Earnings
+    function collectOfflineEarnings() {
+        const earnings = calculateOfflineEarnings(0);
+        gameState.energy += earnings.energy;
+        gameState.money += earnings.money;
+        offlineModal.classList.remove('show');
+        updateDisplays();
+    }
+
+    // Show Save Indicator
+    function showSaveIndicator() {
+        saveIndicator.classList.add('show');
+        setTimeout(() => {
+            saveIndicator.classList.remove('show');
+        }, 2000);
+    }
+
+    // Update Day/Night Cycle
+    function updateDayNightCycle() {
+        const cycle = gameState.dayNightCycle;
+        const brightness = Math.sin(cycle * Math.PI * 2);
+        document.body.style.backgroundColor = `rgb(${135 + brightness * 50}, ${206 + brightness * 50}, ${235 + brightness * 50})`;
+    }
+
+    // Change Weather
+    function changeWeather() {
+        const weathers = ['clear', 'cloudy', 'rainy'];
+        const currentIndex = weathers.indexOf(gameState.weather);
+        const nextIndex = (currentIndex + 1) % weathers.length;
+        gameState.weather = weathers[nextIndex];
+        
+        const weatherElement = document.querySelector('.weather');
+        weatherElement.className = 'weather ' + gameState.weather;
+        weatherElement.style.opacity = gameState.weather === 'clear' ? '0' : '1';
+    }
+
+    // Check Achievements
+    function checkAchievements() {
+        if (!gameState.achievements.firstClick && gameState.stats.totalClicks > 0) {
+            unlockAchievement('First Click!');
+            gameState.achievements.firstClick = true;
+        }
+        
+        if (!gameState.achievements.firstSolarPanel && gameState.solarPanels > 0) {
+            unlockAchievement('First Solar Panel!');
+            gameState.achievements.firstSolarPanel = true;
+        }
+        
+        if (!gameState.achievements.firstUpgrade && Object.values(gameState.solarPanelUpgrades).some(level => level > 0)) {
+            unlockAchievement('First Upgrade!');
+            gameState.achievements.firstUpgrade = true;
+        }
+        
+        if (!gameState.achievements.energyMilestone && gameState.stats.totalEnergy >= 1000) {
+            unlockAchievement('Energy Milestone!');
+            gameState.achievements.energyMilestone = true;
+        }
+        
+        if (!gameState.achievements.moneyMilestone && gameState.money >= 1000) {
+            unlockAchievement('Money Milestone!');
+            gameState.achievements.moneyMilestone = true;
+        }
+    }
+
+    // Unlock Achievement
+    function unlockAchievement(message) {
+        const achievement = document.createElement('div');
+        achievement.className = 'achievement';
+        achievement.textContent = message;
+        document.body.appendChild(achievement);
+        
+        setTimeout(() => {
+            achievement.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            achievement.classList.remove('show');
+            setTimeout(() => {
+                achievement.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    // Sell Energy
+    function sellEnergy() {
+        if (gameState.energy > 0) {
+            const sellAmount = Math.floor(gameState.energy);
+            const moneyEarned = sellAmount * gameState.energyPrice;
+            gameState.energy = 0;
+            gameState.money += moneyEarned;
+            gameState.stats.totalMoney += moneyEarned;
+            updateDisplays();
+            showNotification(`Sold ${sellAmount} energy for $${moneyEarned.toFixed(2)}`);
+        }
+    }
+
+    // Increase Energy Price
+    function increaseEnergyPrice() {
+        if (gameState.money >= gameState.priceIncreaseCost) {
+            gameState.money -= gameState.priceIncreaseCost;
+            gameState.energyPrice *= 1.1; // Increase price by 10%
+            gameState.priceIncreaseCost = Math.floor(gameState.priceIncreaseCost * 1.5);
+            updateDisplays();
+            showNotification(`Energy price increased to $${gameState.energyPrice.toFixed(2)}`);
+        }
+    }
+
+    // Show Notification
+    function showNotification(message) {
+        if (!gameState.settings.notifications) return;
+        
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
+
+    // Upgrade Battery
+    function upgradeBattery() {
+        if (!gameState.batteries.unlocked) {
+            // First time upgrade - unlock battery system
+            if (gameState.money >= gameState.batteries.upgradeCost) {
+                gameState.money -= gameState.batteries.upgradeCost;
+                gameState.batteries.unlocked = true;
+                gameState.batteries.maxCapacity = 1000;
+                gameState.batteries.efficiency = 0.95;
+                gameState.batteries.upgradeCost = Math.floor(gameState.batteries.upgradeCost * 1.5);
+                
+                // Add battery display to resources
+                const resourcesDiv = document.querySelector('.resources');
+                const batteryDiv = document.createElement('div');
+                batteryDiv.className = 'resource';
+                batteryDiv.innerHTML = `
+                    <div>Battery Storage: <span id="battery-storage">0</span>/<span id="battery-capacity">0</span></div>
+                    <div>Efficiency: <span id="battery-efficiency">95</span>%</div>
+                    <button id="upgrade-battery" class="upgrade-item">Upgrade Battery ($<span id="battery-upgrade-cost">${gameState.batteries.upgradeCost}</span>)</button>
+                `;
+                resourcesDiv.appendChild(batteryDiv);
+                
+                updateDisplays();
+                showNotification('Battery system unlocked!');
+            }
+        } else {
+            // Regular battery upgrade
+            if (gameState.money >= gameState.batteries.upgradeCost) {
+                gameState.money -= gameState.batteries.upgradeCost;
+                gameState.batteries.maxCapacity *= 2;
+                gameState.batteries.efficiency = Math.min(0.99, gameState.batteries.efficiency + 0.01);
+                gameState.batteries.upgradeCost = Math.floor(gameState.batteries.upgradeCost * 1.5);
+                updateDisplays();
+                showNotification('Battery capacity and efficiency increased!');
+            }
+        }
+    }
+
+    // Start Quest
+    function startQuest(questId) {
+        const quest = gameState.quests.available.find(q => q.id === questId);
+        if (quest && !gameState.quests.active) {
+            gameState.quests.active = { ...quest, started: Date.now() };
+            updateQuestDisplay();
+            showNotification(`Started quest: ${quest.name}`);
+        }
+    }
+
+    // Check Quest Progress
+    function checkQuestProgress() {
+        if (!gameState.quests.active) return;
+
+        const quest = gameState.quests.active;
+        let completed = false;
+
+        switch (quest.requirement.type) {
+            case 'energy':
+                if (gameState.stats.totalEnergy >= quest.requirement.amount) {
+                    completed = true;
+                }
+                break;
+            case 'panels':
+                if (gameState.solarPanels >= quest.requirement.amount) {
+                    completed = true;
+                }
+                break;
+            case 'estates':
+                if (gameState.estates.length >= quest.requirement.amount) {
+                    completed = true;
+                }
+                break;
+        }
+
+        // Check time limit if exists
+        if (quest.timeLimit && !completed) {
+            const timeElapsed = (Date.now() - quest.started) / 1000;
+            if (timeElapsed > quest.timeLimit) {
+                gameState.quests.active = null;
+                showNotification('Quest failed: Time limit exceeded');
+                updateQuestDisplay();
+                return;
+            }
+        }
+
+        if (completed) {
+            completeQuest();
+        }
+    }
+
+    // Complete Quest
+    function completeQuest() {
+        const quest = gameState.quests.active;
+        gameState.quests.completed.push(quest.id);
+        
+        // Give reward
+        switch (quest.reward.type) {
+            case 'money':
+                gameState.money += quest.reward.amount;
+                showNotification(`Quest completed! Earned $${quest.reward.amount}`);
+                break;
+            case 'panel_skin':
+                unlockPanelSkin(quest.reward.skin);
+                showNotification(`Quest completed! Unlocked ${quest.reward.skin} panel skin`);
+                break;
+        }
+
+        gameState.quests.active = null;
+        updateQuestDisplay();
+    }
+
+    // Update Quest Display
+    function updateQuestDisplay() {
+        const activeQuestDiv = document.getElementById('active-quest');
+        const availableQuestsDiv = document.getElementById('available-quests');
+        
+        // Update active quest
+        if (gameState.quests.active) {
+            const quest = gameState.quests.active;
+            let timeLeft = '';
+            if (quest.timeLimit) {
+                const timeElapsed = (Date.now() - quest.started) / 1000;
+                timeLeft = ` (${Math.ceil(quest.timeLimit - timeElapsed)}s left)`;
+            }
+            activeQuestDiv.innerHTML = `
+                <h4>${quest.name}</h4>
+                <p>${quest.description}${timeLeft}</p>
+                <div class="quest-progress">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${getQuestProgress(quest)}%"></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            activeQuestDiv.innerHTML = '<p>No active quest</p>';
+        }
+        
+        // Update available quests
+        availableQuestsDiv.innerHTML = gameState.quests.available
+            .filter(quest => !gameState.quests.completed.includes(quest.id))
+            .map(quest => `
+                <div class="quest-item" onclick="startQuest('${quest.id}')">
+                    <h4>${quest.name}</h4>
+                    <p>${quest.description}</p>
+                    <div class="quest-reward">Reward: ${formatQuestReward(quest.reward)}</div>
+                </div>
+            `).join('');
+    }
+
+    // Get Quest Progress
+    function getQuestProgress(quest) {
+        switch (quest.requirement.type) {
+            case 'energy':
+                return Math.min(100, (gameState.stats.totalEnergy / quest.requirement.amount) * 100);
+            case 'panels':
+                return Math.min(100, (gameState.solarPanels / quest.requirement.amount) * 100);
+            case 'estates':
+                return Math.min(100, (gameState.estates.length / quest.requirement.amount) * 100);
+            default:
+                return 0;
+        }
+    }
+
+    // Format Quest Reward
+    function formatQuestReward(reward) {
+        switch (reward.type) {
+            case 'money':
+                return `$${reward.amount}`;
+            case 'panel_skin':
+                return `${reward.skin} panel skin`;
+            default:
+                return 'Unknown reward';
+        }
+    }
+
+    // Add panel skin functions
+    function unlockPanelSkin(skinId) {
+        if (!gameState.panelSkins.unlocked.includes(skinId)) {
+            gameState.panelSkins.unlocked.push(skinId);
+            updatePanelSkins();
+            showNotification(`Unlocked new panel skin: ${gameState.panelSkins.available[skinId].name}`);
+        }
+    }
+
+    function applyPanelSkin(skinId) {
+        if (gameState.panelSkins.unlocked.includes(skinId)) {
+            gameState.panelSkins.active = skinId;
+            const skin = gameState.panelSkins.available[skinId];
+            
+            // Update all solar panels
+            document.querySelectorAll('.solar-panel').forEach(panel => {
+                panel.style.background = skin.gradient;
+                if (skin.glow) {
+                    panel.style.boxShadow = skin.glow;
+                }
+                if (skin.border) {
+                    panel.style.border = skin.border;
+                }
+            });
+            
+            updatePanelSkins();
+            showNotification(`Applied ${skin.name} skin to all panels`);
+        }
+    }
+
+    function updatePanelSkins() {
+        const skinList = document.getElementById('panel-skins');
+        skinList.innerHTML = Object.entries(gameState.panelSkins.available)
+            .map(([id, skin]) => `
+                <div class="skin-item ${gameState.panelSkins.unlocked.includes(id) ? 'unlocked' : 'locked'}"
+                     onclick="${gameState.panelSkins.unlocked.includes(id) ? `applyPanelSkin('${id}')` : ''}">
+                    <div class="skin-preview" style="background: ${skin.gradient}; ${skin.glow ? `box-shadow: ${skin.glow};` : ''} ${skin.border ? `border: ${skin.border};` : ''}"></div>
+                    <div class="skin-name">${skin.name}</div>
+                    <div class="skin-status">${gameState.panelSkins.unlocked.includes(id) ? 'Unlocked' : 'Locked'}</div>
+                </div>
+            `).join('');
+    }
+
+    // Add research functions
+    function updateResearchTree() {
+        const researchTree = document.getElementById('research-tree');
+        researchTree.innerHTML = Object.entries(gameState.research.available)
+            .map(([id, research]) => {
+                const isUnlocked = gameState.research.unlocked.includes(id);
+                const canResearch = !isUnlocked && 
+                    research.requirements.every(req => gameState.research.unlocked.includes(req));
+                
+                return `
+                    <div class="research-item ${isUnlocked ? 'unlocked' : canResearch ? '' : 'locked'}"
+                         onclick="${canResearch ? `researchTechnology('${id}')` : ''}">
+                        <div class="research-name">${research.name}</div>
+                        <div class="research-description">${research.description}</div>
+                        <div class="research-cost">Cost: ${research.cost} points</div>
+                        ${research.requirements.length > 0 ? 
+                            `<div class="research-requirements">Requires: ${research.requirements.join(', ')}</div>` : 
+                            ''}
+                    </div>
+                `;
+            }).join('');
+    }
+
+    function researchTechnology(techId) {
+        const tech = gameState.research.available[techId];
+        if (gameState.research.points >= tech.cost) {
+            gameState.research.points -= tech.cost;
+            gameState.research.unlocked.push(techId);
+            
+            // Apply effects
+            if (tech.effects.efficiency) {
+                gameState.solarPanelEfficiency *= tech.effects.efficiency;
+            }
+            if (tech.effects.maintenance) {
+                // Implement maintenance system
+            }
+            if (tech.effects.nightPenalty) {
+                gameState.nightPenalty *= tech.effects.nightPenalty;
+            }
+            if (tech.effects.batteryEfficiency) {
+                gameState.batteries.efficiency *= tech.effects.batteryEfficiency;
+            }
+            if (tech.effects.batteryCapacity) {
+                gameState.batteries.maxCapacity *= tech.effects.batteryCapacity;
+            }
+            if (tech.effects.weatherResistance) {
+                Object.keys(gameState.weatherEffects).forEach(weather => {
+                    gameState.weatherEffects[weather].energyMultiplier *= tech.effects.weatherResistance;
+                });
+            }
+            
+            updateResearchTree();
+            showNotification(`Researched ${tech.name}!`);
+        }
+    }
+
+    function updateEnergyTypes() {
+        const energyTypesDiv = document.getElementById('energy-types');
+        energyTypesDiv.innerHTML = Object.entries(gameState.energyTypes)
+            .map(([type, data]) => `
+                <div class="energy-type ${data.unlocked ? '' : 'locked'}">
+                    <div class="energy-type-name">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="energy-type-efficiency">Efficiency: ${(data.efficiency * 100).toFixed(0)}%</div>
+                    ${data.weatherDependent ? '<div class="weather-dependent">Weather Dependent</div>' : ''}
+                </div>
+            `).join('');
+    }
+
+    function updateNewsTicker() {
+        if (!gameState.settings.showNews) return;
+        
+        const newsContent = document.getElementById('news-content');
+        if (Date.now() - gameState.news.lastUpdate > 10000) {
+            const randomNews = gameState.news.availableNews[
+                Math.floor(Math.random() * gameState.news.availableNews.length)
+            ];
+            gameState.news.currentNews.push(randomNews);
+            if (gameState.news.currentNews.length > 3) {
+                gameState.news.currentNews.shift();
+            }
+            gameState.news.lastUpdate = Date.now();
+        }
+        
+        newsContent.textContent = gameState.news.currentNews.join(' • ');
+    }
+
+    // Initialize the game when the page loads
+    window.addEventListener('load', initGame);
+
+    // Add settings functions
+    function showSettings() {
+        const modal = document.getElementById('settings-modal');
+        modal.classList.add('show');
+        
+        // Set initial toggle states
+        document.getElementById('notifications-toggle').checked = gameState.settings.notifications;
+        document.getElementById('news-toggle').checked = gameState.settings.showNews;
+        document.getElementById('animations-toggle').checked = gameState.settings.animations;
+    }
+
+    function closeSettings() {
+        const modal = document.getElementById('settings-modal');
+        modal.classList.remove('show');
+        
+        // Save settings
+        gameState.settings.notifications = document.getElementById('notifications-toggle').checked;
+        gameState.settings.showNews = document.getElementById('news-toggle').checked;
+        gameState.settings.animations = document.getElementById('animations-toggle').checked;
+        
+        // Apply settings
+        document.querySelector('.news-ticker').style.display = gameState.settings.showNews ? 'block' : 'none';
+        document.body.style.setProperty('--animation-duration', gameState.settings.animations ? '0.2s' : '0s');
+    }
+
+    function resetGame() {
+        if (confirm('Are you sure you want to reset your game? This will delete all progress and cannot be undone.')) {
+            localStorage.removeItem('solarGame');
+            location.reload();
+        }
+    }
+
+    function resetSettings() {
+        if (confirm('Are you sure you want to reset your settings to default?')) {
+            gameState.settings = {
+                notifications: true,
+                showNews: true,
+                animations: true
+            };
+            closeSettings();
+        }
+    }
+
+    function exportSave() {
+        const saveData = JSON.stringify(gameState);
+        const blob = new Blob([saveData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'solar-panel-clicker-save.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importSave() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const saveData = JSON.parse(event.target.result);
+                    Object.assign(gameState, saveData);
+                    updateDisplays();
+                    showNotification('Game imported successfully!');
+                } catch (error) {
+                    showNotification('Error importing save file!');
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    // Add the click text function
+    function showClickText() {
+        const clickText = document.getElementById('click-text');
+        const randomText = gameState.clickTexts[Math.floor(Math.random() * gameState.clickTexts.length)];
+        
+        clickText.textContent = randomText;
+        clickText.classList.add('show');
+        
+        // Add a small energy bonus
+        const bonusEnergy = 5; // Fixed bonus instead of random
+        gameState.energy += bonusEnergy;
+        showNotification(`+${bonusEnergy} energy!`);
+        
+        // Hide the text after 2 seconds
+        setTimeout(() => {
+            clickText.classList.remove('show');
+        }, 2000);
+        
+        // Update displays
+        updateDisplays();
+    }
+  </script>
+</body>
+</html> 
