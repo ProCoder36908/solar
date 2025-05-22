@@ -2949,7 +2949,236 @@
 
     function resetGame() {
         if (confirm('Are you sure you want to reset your game? This will delete all progress and cannot be undone.')) {
-            localStorage.removeItem('solarGame');
+            // Clear all localStorage items
+            localStorage.clear();
+            
+            // Reset game state to initial values
+            Object.assign(gameState, {
+                energy: 0,
+                money: 0,
+                clickMultiplier: 1,
+                autoClickers: 0,
+                autoClickerCost: 10,
+                solarPanels: 0,
+                solarPanelCost: 50,
+                solarPanelEfficiency: 1,
+                energyPrice: 0.1,
+                priceIncreaseCost: 100,
+                passiveEnergy: 0,
+                estates: [],
+                estateCost: 1000,
+                taxRate: 0.1,
+                taxInterval: 60000,
+                lastTaxCollection: Date.now(),
+                solarPanelUpgrades: {
+                    efficiency: 0,
+                    durability: 0,
+                    automation: 0,
+                    solarEfficiencyBoost: 0,
+                    advancedSolarTech: 0,
+                    autoCollector: 0,
+                    batteryStorage: 0,
+                    marketInsight: 0,
+                    greenSubsidies: 0,
+                    solarFarm: 0,
+                    smartPanels: 0,
+                    weatherController: 0,
+                    nightPanels: 0
+                },
+                solarPanelUpgradeCosts: {
+                    efficiency: 100,
+                    durability: 150,
+                    automation: 200,
+                    solarEfficiencyBoost: 300,
+                    advancedSolarTech: 500,
+                    autoCollector: 400,
+                    batteryStorage: 250,
+                    marketInsight: 350,
+                    greenSubsidies: 450,
+                    solarFarm: 1000,
+                    smartPanels: 600,
+                    weatherController: 800,
+                    nightPanels: 700
+                },
+                stats: {
+                    totalEnergy: 0,
+                    totalMoney: 0,
+                    totalClicks: 0,
+                    solarPanelsPlaced: 0,
+                    upgradesPurchased: 0,
+                    timePlayed: 0,
+                    totalTaxesPaid: 0
+                },
+                achievements: {
+                    firstClick: false,
+                    firstSolarPanel: false,
+                    firstUpgrade: false,
+                    firstEstate: false,
+                    energyMilestone: false,
+                    moneyMilestone: false,
+                    taxMilestone: false
+                },
+                panelSkins: {
+                    unlocked: ['default'],
+                    active: 'default',
+                    available: {
+                        default: {
+                            name: 'Classic Blue',
+                            gradient: 'linear-gradient(135deg, #1e90ff, #104e8b)'
+                        },
+                        golden: {
+                            name: 'Golden',
+                            gradient: 'linear-gradient(135deg, #ffd700, #daa520)'
+                        },
+                        neon: {
+                            name: 'Neon',
+                            gradient: 'linear-gradient(135deg, #00ff00, #00cc00)',
+                            glow: '0 0 10px #00ff00'
+                        },
+                        crystal: {
+                            name: 'Crystal',
+                            gradient: 'linear-gradient(135deg, #ffffff, #e6e6e6)',
+                            border: '2px solid #ffffff'
+                        }
+                    }
+                },
+                lastSave: Date.now(),
+                lastUpdate: Date.now(),
+                dayNightCycle: 0,
+                weather: 'clear',
+                weatherEffects: {
+                    clear: { energyMultiplier: 1 },
+                    cloudy: { energyMultiplier: 0.7 },
+                    rainy: { energyMultiplier: 0.5 }
+                },
+                batteries: {
+                    unlocked: false,
+                    capacity: 0,
+                    stored: 0,
+                    efficiency: 0.95,
+                    maxCapacity: 1000,
+                    upgradeCost: 500
+                },
+                nightPenalty: 0.8,
+                prestige: {
+                    level: 0,
+                    multiplier: 1,
+                    cost: 1000000,
+                    ascensionPoints: 0,
+                    ascensionBonuses: {
+                        energyMultiplier: 0,
+                        passiveIncome: 0,
+                        panelEfficiency: 0,
+                        weatherResistance: 0
+                    },
+                    ascensionCosts: {
+                        energyMultiplier: 1,
+                        passiveIncome: 1,
+                        panelEfficiency: 1,
+                        weatherResistance: 1
+                    }
+                },
+                research: {
+                    points: 0,
+                    unlocked: [],
+                    available: {
+                        selfCleaning: {
+                            name: "Self-Cleaning Panels",
+                            description: "Panels automatically clean themselves, reducing efficiency loss",
+                            cost: 100,
+                            requirements: [],
+                            effects: {
+                                efficiency: 1.1,
+                                maintenance: -0.1
+                            }
+                        },
+                        aiTracking: {
+                            name: "AI Sun Tracking",
+                            description: "Advanced AI optimizes panel angles for maximum efficiency",
+                            cost: 200,
+                            requirements: ["selfCleaning"],
+                            effects: {
+                                efficiency: 1.2,
+                                nightPenalty: 0.9
+                            }
+                        },
+                        quantumStorage: {
+                            name: "Quantum Storage",
+                            description: "Revolutionary energy storage technology",
+                            cost: 300,
+                            requirements: ["aiTracking"],
+                            effects: {
+                                batteryEfficiency: 1.3,
+                                batteryCapacity: 2
+                            }
+                        },
+                        weatherControl: {
+                            name: "Weather Control",
+                            description: "Advanced technology to manipulate local weather patterns",
+                            cost: 400,
+                            requirements: ["quantumStorage"],
+                            effects: {
+                                weatherResistance: 1.2,
+                                clearWeatherChance: 1.5
+                            }
+                        }
+                    }
+                },
+                energyTypes: {
+                    solar: {
+                        unlocked: true,
+                        efficiency: 1,
+                        weatherDependent: true
+                    },
+                    wind: {
+                        unlocked: false,
+                        efficiency: 0.8,
+                        weatherDependent: true,
+                        windSpeed: 1
+                    },
+                    hydro: {
+                        unlocked: false,
+                        efficiency: 0.9,
+                        weatherDependent: false,
+                        waterLevel: 1
+                    },
+                    geothermal: {
+                        unlocked: false,
+                        efficiency: 0.7,
+                        weatherDependent: false,
+                        heatLevel: 1
+                    }
+                },
+                settings: {
+                    notifications: true,
+                    showNews: true,
+                    animations: true
+                }
+            });
+
+            // Clear all solar panels from the house
+            const house = document.getElementById('main-house');
+            house.innerHTML = `
+                <div class="roof" id="main-roof"></div>
+                <div class="house-base">
+                    <div class="door"></div>
+                    <div class="window window-left"></div>
+                    <div class="window window-right"></div>
+                </div>
+            `;
+
+            // Clear estates list
+            const estatesList = document.getElementById('estates-list');
+            estatesList.innerHTML = '';
+
+            // Update all displays
+            updateDisplays();
+            updateQuestDisplay();
+            updatePanelSkins();
+            updateResearchTree();
+            updateEnergyTypes();
+
+            // Reload the page
             location.reload();
         }
     }
