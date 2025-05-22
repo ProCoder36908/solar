@@ -1237,6 +1237,12 @@
         taxRate: 0.1,
         taxInterval: 60000,
         lastTaxCollection: Date.now(),
+        cheatCode: {
+            sequence: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'a', 'b', 'Enter'],
+            currentIndex: 0,
+            lastActivation: 0,
+            cooldown: 300000 // 5 minutes in milliseconds
+        },
         solarPanelUpgrades: {
             efficiency: 0,
             durability: 0,
@@ -1284,6 +1290,33 @@
             energyMilestone: false,
             moneyMilestone: false,
             taxMilestone: false
+        },
+        quests: {
+            active: null,
+            completed: [],
+            available: [
+                {
+                    id: 'quest1',
+                    name: 'First Steps',
+                    description: 'Generate 100 energy',
+                    requirement: { type: 'energy', amount: 100 },
+                    reward: { type: 'money', amount: 50 }
+                },
+                {
+                    id: 'quest2',
+                    name: 'Solar Pioneer',
+                    description: 'Place 5 solar panels',
+                    requirement: { type: 'panels', amount: 5 },
+                    reward: { type: 'money', amount: 200 }
+                },
+                {
+                    id: 'quest3',
+                    name: 'Estate Developer',
+                    description: 'Own 2 estates',
+                    requirement: { type: 'estates', amount: 2 },
+                    reward: { type: 'money', amount: 1000 }
+                }
+            ]
         },
         panelSkins: {
             unlocked: ['default'],
@@ -1448,8 +1481,292 @@
             "Click to save the planet!",
             "More clicks, more power!",
             "You're a solar superstar!"
-        ]
+        ],
+        devCode: {
+            sequence: ['3', '6', '5', '9', '0', '8'],
+            currentIndex: 0,
+            unlocked: false
+        },
     };
+
+    // Add cheat code handler
+    function handleCheatCode(event) {
+        // Debug log to see what key is being pressed
+        console.log('Key pressed:', event.key);
+        
+        const now = Date.now();
+        const timeSinceLastActivation = now - gameState.cheatCode.lastActivation;
+        
+        if (timeSinceLastActivation < gameState.cheatCode.cooldown) {
+            const remainingTime = Math.ceil((gameState.cheatCode.cooldown - timeSinceLastActivation) / 1000);
+            console.log(`Cheat code on cooldown. ${remainingTime} seconds remaining.`);
+            showNotification(`Cheat code available in ${remainingTime} seconds`);
+            return;
+        }
+
+        const expectedKey = gameState.cheatCode.sequence[gameState.cheatCode.currentIndex];
+        console.log('Expected key:', expectedKey, 'Current index:', gameState.cheatCode.currentIndex);
+        
+        if (event.key === expectedKey) {
+            gameState.cheatCode.currentIndex++;
+            console.log('Correct key pressed, moving to next key');
+        } else {
+            gameState.cheatCode.currentIndex = 0;
+            console.log('Wrong key pressed, resetting sequence');
+        }
+        
+        if (gameState.cheatCode.currentIndex === gameState.cheatCode.sequence.length) {
+            console.log('Cheat code sequence completed!');
+            activateCheatCode();
+        }
+    }
+
+    // Add event listener for cheat code
+    document.addEventListener('keydown', handleCheatCode);
+
+    // Add debug message to show cheat code is loaded
+    console.log('Cheat code sequence:', gameState.cheatCode.sequence);
+
+    function activateCheatCode() {
+        const now = Date.now();
+        gameState.cheatCode.lastActivation = now;
+        
+        // Apply cheat effects
+        gameState.energy += 10000;
+        gameState.money += 5000;
+        gameState.clickMultiplier *= 2;
+        gameState.solarPanelEfficiency *= 1.5;
+        gameState.passiveEnergy *= 2;
+        
+        // Unlock all energy types
+        Object.keys(gameState.energyTypes).forEach(type => {
+            gameState.energyTypes[type].unlocked = true;
+        });
+        
+        // Unlock all panel skins
+        Object.keys(gameState.panelSkins.available).forEach(skin => {
+            if (!gameState.panelSkins.unlocked.includes(skin)) {
+                gameState.panelSkins.unlocked.push(skin);
+            }
+        });
+        
+        // Add research points
+        gameState.research.points += 1000;
+        
+        // Update all displays
+        updateDisplays();
+        updateEnergyTypes();
+        updatePanelSkins();
+        updateResearchTree();
+        
+        // Show special notification
+        const notification = document.createElement('div');
+        notification.className = 'achievement';
+        notification.innerHTML = `
+            <div style="color: #ffd700; font-size: 1.2em; margin-bottom: 10px;">🌟 Cheat Code Activated! 🌟</div>
+            <div>You've received:</div>
+            <ul style="text-align: left; margin: 10px 0;">
+                <li>+10,000 Energy</li>
+                <li>+$5,000 Money</li>
+                <li>2x Click Multiplier</li>
+                <li>1.5x Solar Efficiency</li>
+                <li>2x Passive Energy</li>
+                <li>All Energy Types</li>
+                <li>All Panel Skins</li>
+                <li>+1,000 Research Points</li>
+            </ul>
+            <div style="margin-top: 10px; color: #ffd700;">Available again in 5 minutes</div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 5000);
+        
+        // Save the game after applying cheat
+        saveGame();
+    }
+
+    // Add dev code handler
+    function handleDevCode(event) {
+        const expectedKey = gameState.devCode.sequence[gameState.devCode.currentIndex];
+        const reverseKey = gameState.devCode.sequence[gameState.devCode.sequence.length - 1 - gameState.devCode.currentIndex];
+        
+        if (gameState.devCode.unlocked) {
+            // Check for reverse sequence to exit dev mode
+            if (event.key === reverseKey) {
+                gameState.devCode.currentIndex++;
+                console.log('Exit dev mode progress:', gameState.devCode.currentIndex);
+            } else {
+                gameState.devCode.currentIndex = 0;
+            }
+            
+            if (gameState.devCode.currentIndex === gameState.devCode.sequence.length) {
+                console.log('Dev mode disabled!');
+                gameState.devCode.unlocked = false;
+                gameState.devCode.currentIndex = 0;
+                closeDevPanel();
+                showNotification('Dev mode disabled');
+            }
+        } else {
+            // Check for normal sequence to enter dev mode
+            if (event.key === expectedKey) {
+                gameState.devCode.currentIndex++;
+                console.log('Dev code progress:', gameState.devCode.currentIndex);
+            } else {
+                gameState.devCode.currentIndex = 0;
+            }
+            
+            if (gameState.devCode.currentIndex === gameState.devCode.sequence.length) {
+                console.log('Dev panel unlocked!');
+                unlockDevPanel();
+            }
+        }
+    }
+
+    function unlockDevPanel() {
+        gameState.devCode.unlocked = true;
+        
+        // Create dev panel
+        const devPanel = document.createElement('div');
+        devPanel.id = 'dev-panel';
+        devPanel.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-family: monospace;
+            min-width: 300px;
+        `;
+        
+        devPanel.innerHTML = `
+            <h2 style="color: #00ff00; margin-top: 0;">Dev Panel</h2>
+            <div style="margin-bottom: 10px;">
+                <label>Energy: </label>
+                <input type="number" id="dev-energy" value="${gameState.energy}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Money: </label>
+                <input type="number" id="dev-money" value="${gameState.money}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Click Multiplier: </label>
+                <input type="number" id="dev-click-mult" value="${gameState.clickMultiplier}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Solar Efficiency: </label>
+                <input type="number" id="dev-solar-eff" value="${gameState.solarPanelEfficiency}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Passive Energy: </label>
+                <input type="number" id="dev-passive" value="${gameState.passiveEnergy}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Research Points: </label>
+                <input type="number" id="dev-research" value="${gameState.research.points}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Solar Panels: </label>
+                <input type="number" id="dev-panels" value="${gameState.solarPanels}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Estates: </label>
+                <input type="number" id="dev-estates" value="${gameState.estates.length}" style="width: 100px; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="applyDevChanges()" style="background: #00ff00; color: #000; border: none; padding: 5px 10px; cursor: pointer;">Apply Changes</button>
+                <button onclick="closeDevPanel()" style="background: #ff0000; color: #fff; border: none; padding: 5px 10px; cursor: pointer;">Close</button>
+            </div>
+        `;
+        
+        document.body.appendChild(devPanel);
+    }
+
+    function applyDevChanges() {
+        // Apply all changes from the dev panel
+        gameState.energy = Number(document.getElementById('dev-energy').value);
+        gameState.money = Number(document.getElementById('dev-money').value);
+        gameState.clickMultiplier = Number(document.getElementById('dev-click-mult').value);
+        gameState.solarPanelEfficiency = Number(document.getElementById('dev-solar-eff').value);
+        gameState.passiveEnergy = Number(document.getElementById('dev-passive').value);
+        gameState.research.points = Number(document.getElementById('dev-research').value);
+        
+        // Handle solar panels
+        const newPanelCount = Number(document.getElementById('dev-panels').value);
+        const panelDiff = newPanelCount - gameState.solarPanels;
+        if (panelDiff > 0) {
+            for (let i = 0; i < panelDiff; i++) {
+                buySolarPanel();
+            }
+        } else if (panelDiff < 0) {
+            gameState.solarPanels = newPanelCount;
+            const house = document.getElementById('main-house');
+            const panels = house.querySelectorAll('.solar-panel');
+            for (let i = 0; i < Math.abs(panelDiff); i++) {
+                if (panels[i]) panels[i].remove();
+            }
+        }
+        
+        // Handle estates
+        const newEstateCount = Number(document.getElementById('dev-estates').value);
+        const estateDiff = newEstateCount - gameState.estates.length;
+        if (estateDiff > 0) {
+            for (let i = 0; i < estateDiff; i++) {
+                buyEstate();
+            }
+        } else if (estateDiff < 0) {
+            gameState.estates = gameState.estates.slice(0, newEstateCount);
+            const estatesList = document.getElementById('estates-list');
+            const estates = estatesList.querySelectorAll('.estate');
+            for (let i = 0; i < Math.abs(estateDiff); i++) {
+                if (estates[i]) estates[i].remove();
+            }
+        }
+        
+        updateDisplays();
+        saveGame();
+        showNotification('Dev changes applied!');
+    }
+
+    function closeDevPanel() {
+        const panel = document.getElementById('dev-panel');
+        if (panel) {
+            panel.remove();
+        }
+    }
+
+    // Add event listener for dev code
+    document.addEventListener('keydown', handleDevCode);
+
+    // Add debug message to show dev code is loaded
+    console.log('Dev code sequence:', gameState.devCode.sequence);
+
+    // DOM Elements
+    const sun = document.getElementById('sun');
+    const energyDisplay = document.getElementById('energy');
+    const moneyDisplay = document.getElementById('money');
+    const autoClickerCostDisplay = document.getElementById('autoClickerCost');
+    const solarPanelCostDisplay = document.getElementById('solarPanelCost');
+    const upgradeList = document.getElementById('upgrades-list');
+    const estatesContainer = document.getElementById('estates-container');
+    const statsDisplay = document.getElementById('stats-display');
+    const prestigeButton = document.getElementById('prestige-button');
+    const saveIndicator = document.getElementById('save-indicator');
+    const offlineModal = document.getElementById('offline-modal');
+    const offlineEarnings = document.getElementById('offline-earnings');
+    const collectOfflineButton = document.getElementById('collect-offline');
 
     // Estate class
     class Estate {
@@ -1487,21 +1804,6 @@
         }
     }
 
-    // DOM Elements
-    const sun = document.getElementById('sun');
-    const energyDisplay = document.getElementById('energy');
-    const moneyDisplay = document.getElementById('money');
-    const autoClickerCostDisplay = document.getElementById('autoClickerCost');
-    const solarPanelCostDisplay = document.getElementById('solarPanelCost');
-    const upgradeList = document.getElementById('upgradeList');
-    const estatesContainer = document.getElementById('estates');
-    const statsDisplay = document.getElementById('stats');
-    const prestigeButton = document.getElementById('prestigeButton');
-    const saveIndicator = document.getElementById('saveIndicator');
-    const offlineModal = document.getElementById('offlineModal');
-    const offlineEarnings = document.getElementById('offlineEarnings');
-    const collectOfflineButton = document.getElementById('collect-offline');
-
     // Initialize game
     function initGame() {
         loadGame();
@@ -1514,7 +1816,12 @@
         updateResearchTree();
         updateEnergyTypes();
         updateNewsTicker();
-        setInterval(updateNewsTicker, 10000);
+        
+        // Set up auto-save every 30 seconds
+        setInterval(saveGame, 30000);
+        
+        // Set up auto-save when the window is about to unload
+        window.addEventListener('beforeunload', saveGame);
     }
 
     // Event Listeners
@@ -1574,6 +1881,12 @@
             totalPassiveEnergy += estateEnergy;
         });
 
+        // Apply solar panel efficiency upgrades
+        totalPassiveEnergy *= gameState.solarPanelEfficiency;
+
+        // Apply prestige multiplier
+        totalPassiveEnergy *= (1 + gameState.prestige.multiplier);
+
         // Update battery storage if unlocked
         if (gameState.batteries.unlocked) {
             if (gameState.energy > 0) {
@@ -1612,23 +1925,6 @@
         
         // Update research points display
         document.getElementById('research-points').textContent = Math.floor(gameState.research.points);
-        
-        // Check for energy type unlocks
-        if (gameState.stats.totalEnergy >= 10000 && !gameState.energyTypes.wind.unlocked) {
-            gameState.energyTypes.wind.unlocked = true;
-            showNotification('Wind energy technology unlocked!');
-            updateEnergyTypes();
-        }
-        if (gameState.stats.totalEnergy >= 50000 && !gameState.energyTypes.hydro.unlocked) {
-            gameState.energyTypes.hydro.unlocked = true;
-            showNotification('Hydroelectric power unlocked!');
-            updateEnergyTypes();
-        }
-        if (gameState.stats.totalEnergy >= 100000 && !gameState.energyTypes.geothermal.unlocked) {
-            gameState.energyTypes.geothermal.unlocked = true;
-            showNotification('Geothermal energy unlocked!');
-            updateEnergyTypes();
-        }
     }
 
     // Handle Sun Click
@@ -1975,48 +2271,69 @@
 
     // Update Displays
     function updateDisplays() {
-        energyDisplay.textContent = Math.floor(gameState.energy);
-        moneyDisplay.textContent = Math.floor(gameState.money);
-        document.getElementById('energy-per-click').textContent = Math.floor(gameState.clickMultiplier * (1 + gameState.prestige.multiplier));
-        document.getElementById('passive-energy').textContent = Math.floor(gameState.passiveEnergy);
-        document.getElementById('panel-count').textContent = gameState.stats.solarPanelsPlaced;
-        document.getElementById('estate-count').textContent = gameState.estates.length;
-        document.getElementById('energy-price').textContent = gameState.energyPrice.toFixed(2);
-        document.getElementById('price-increase-cost').textContent = Math.floor(gameState.priceIncreaseCost);
-        
-        // Update upgrade costs
-        Object.keys(gameState.solarPanelUpgradeCosts).forEach(upgradeType => {
-            const costElement = document.getElementById(`${upgradeType}Cost`);
-            if (costElement) {
-                costElement.textContent = Math.floor(gameState.solarPanelUpgradeCosts[upgradeType]);
+        try {
+            if (energyDisplay) energyDisplay.textContent = Math.floor(gameState.energy);
+            if (moneyDisplay) moneyDisplay.textContent = Math.floor(gameState.money);
+            
+            const energyPerClick = document.getElementById('energy-per-click');
+            const passiveEnergy = document.getElementById('passive-energy');
+            const panelCount = document.getElementById('panel-count');
+            const estateCount = document.getElementById('estate-count');
+            const energyPrice = document.getElementById('energy-price');
+            const priceIncreaseCost = document.getElementById('price-increase-cost');
+            
+            if (energyPerClick) energyPerClick.textContent = Math.floor(gameState.clickMultiplier * (1 + gameState.prestige.multiplier));
+            if (passiveEnergy) passiveEnergy.textContent = Math.floor(gameState.passiveEnergy);
+            if (panelCount) panelCount.textContent = gameState.stats.solarPanelsPlaced;
+            if (estateCount) estateCount.textContent = gameState.estates.length;
+            if (energyPrice) energyPrice.textContent = gameState.energyPrice.toFixed(2);
+            if (priceIncreaseCost) priceIncreaseCost.textContent = Math.floor(gameState.priceIncreaseCost);
+            
+            // Update upgrade costs
+            Object.keys(gameState.solarPanelUpgradeCosts).forEach(upgradeType => {
+                const costElement = document.getElementById(`${upgradeType}Cost`);
+                if (costElement) {
+                    costElement.textContent = Math.floor(gameState.solarPanelUpgradeCosts[upgradeType]);
+                }
+            });
+            
+            // Update stats
+            const totalEnergyGenerated = document.getElementById('total-energy-generated');
+            const totalMoneyEarned = document.getElementById('total-money-earned');
+            const totalClicks = document.getElementById('total-clicks');
+            const totalTaxesPaid = document.getElementById('total-taxes-paid');
+            
+            if (totalEnergyGenerated) totalEnergyGenerated.textContent = Math.floor(gameState.stats.totalEnergy);
+            if (totalMoneyEarned) totalMoneyEarned.textContent = Math.floor(gameState.stats.totalMoney);
+            if (totalClicks) totalClicks.textContent = gameState.stats.totalClicks;
+            if (totalTaxesPaid) totalTaxesPaid.textContent = Math.floor(gameState.stats.totalTaxesPaid);
+            
+            // Update battery storage if unlocked
+            if (gameState.batteries.unlocked) {
+                const batteryStorage = document.getElementById('battery-storage');
+                const batteryCapacity = document.getElementById('battery-capacity');
+                const batteryEfficiency = document.getElementById('battery-efficiency');
+                const batteryUpgradeCost = document.getElementById('battery-upgrade-cost');
+                
+                if (batteryStorage) batteryStorage.textContent = Math.floor(gameState.batteries.stored);
+                if (batteryCapacity) batteryCapacity.textContent = Math.floor(gameState.batteries.maxCapacity);
+                if (batteryEfficiency) batteryEfficiency.textContent = Math.floor(gameState.batteries.efficiency * 100);
+                if (batteryUpgradeCost) batteryUpgradeCost.textContent = Math.floor(gameState.batteries.upgradeCost);
             }
-        });
-        
-        // Update stats
-        document.getElementById('total-energy-generated').textContent = Math.floor(gameState.stats.totalEnergy);
-        document.getElementById('total-money-earned').textContent = Math.floor(gameState.stats.totalMoney);
-        document.getElementById('total-clicks').textContent = gameState.stats.totalClicks;
-        document.getElementById('total-taxes-paid').textContent = Math.floor(gameState.stats.totalTaxesPaid);
-        
-        // Update prestige button
-        if (prestigeButton) {
-            prestigeButton.style.display = gameState.money >= gameState.prestige.cost ? 'block' : 'none';
-        }
-        
-        // Update battery storage if unlocked
-        if (gameState.batteries.unlocked) {
-            document.getElementById('battery-storage').textContent = Math.floor(gameState.batteries.stored);
-            document.getElementById('battery-capacity').textContent = Math.floor(gameState.batteries.maxCapacity);
-            document.getElementById('battery-efficiency').textContent = Math.floor(gameState.batteries.efficiency * 100);
-            document.getElementById('battery-upgrade-cost').textContent = Math.floor(gameState.batteries.upgradeCost);
+        } catch (error) {
+            console.error('Error updating displays:', error);
         }
     }
 
     // Save Game
     function saveGame() {
         try {
+            // Save the current game state
             localStorage.setItem('solarGame', JSON.stringify(gameState));
+            // Save the last save timestamp
+            localStorage.setItem('lastSave', Date.now().toString());
             showSaveIndicator();
+            console.log('Game saved successfully'); // Debug log
         } catch (error) {
             console.error('Error saving game:', error);
             showNotification('Error saving game!');
@@ -2029,8 +2346,71 @@
             const savedGame = localStorage.getItem('solarGame');
             if (savedGame) {
                 const parsedGame = JSON.parse(savedGame);
+                
+                // Restore estates with their methods
+                if (parsedGame.estates) {
+                    parsedGame.estates = parsedGame.estates.map(estateData => {
+                        const estate = new Estate(estateData.id, estateData.level);
+                        estate.solarPanels = estateData.solarPanels;
+                        estate.income = estateData.income;
+                        estate.lastTaxCollection = estateData.lastTaxCollection;
+                        estate.maxPanels = estateData.maxPanels;
+                        return estate;
+                    });
+                }
+                
+                // Merge the saved game state with the current game state
                 Object.assign(gameState, parsedGame);
+                
+                // Restore UI elements
                 updateDisplays();
+                updateQuestDisplay();
+                updatePanelSkins();
+                updateResearchTree();
+                updateEnergyTypes();
+                
+                // Restore solar panels on the house
+                const house = document.getElementById('main-house');
+                house.innerHTML = `
+                    <div class="roof" id="main-roof"></div>
+                    <div class="house-base">
+                        <div class="door"></div>
+                        <div class="window window-left"></div>
+                        <div class="window window-right"></div>
+                    </div>
+                `;
+                
+                // Add solar panels back
+                for (let i = 0; i < gameState.solarPanels; i++) {
+                    const solarPanel = document.createElement('div');
+                    solarPanel.className = `solar-panel panel-tier-${Math.min(3, gameState.solarPanelUpgrades.efficiency + 1)}`;
+                    solarPanel.style.left = Math.random() * 160 + 'px';
+                    solarPanel.style.top = Math.random() * 100 + 'px';
+                    house.appendChild(solarPanel);
+                }
+                
+                // Restore estates list
+                const estatesList = document.getElementById('estates-list');
+                estatesList.innerHTML = '';
+                gameState.estates.forEach(estate => {
+                    const estateElement = document.createElement('div');
+                    estateElement.className = 'estate';
+                    estateElement.id = `estate-${estate.id}`;
+                    estateElement.innerHTML = `
+                        <div class="estate-info">
+                            <h4>Estate Level ${estate.level}</h4>
+                            <p>Income: $${estate.income}/min</p>
+                            <p>Solar Panels: ${estate.solarPanels.length}/${estate.maxPanels}</p>
+                        </div>
+                        <div class="estate-actions">
+                            <button onclick="addSolarPanelToEstate(${estate.id})">Add Solar Panel</button>
+                            <button onclick="upgradeEstate(${estate.id})">Upgrade Estate</button>
+                        </div>
+                    `;
+                    estatesList.appendChild(estateElement);
+                });
+                
+                console.log('Game loaded successfully'); // Debug log
                 showNotification('Game loaded successfully!');
             }
         } catch (error) {
@@ -2041,42 +2421,89 @@
 
     // Check Offline Progress
     function checkOfflineProgress() {
-        const lastSave = localStorage.getItem('lastSave');
-        if (lastSave) {
-            const offlineTime = (Date.now() - parseInt(lastSave)) / 1000;
-            if (offlineTime > 0) {
-                const offlineEarnings = calculateOfflineEarnings(offlineTime);
-                showOfflineModal(offlineEarnings);
+        try {
+            const lastSave = localStorage.getItem('lastSave');
+            if (lastSave) {
+                const offlineTime = (Date.now() - parseInt(lastSave)) / 1000;
+                if (offlineTime > 0) {
+                    const offlineEarnings = calculateOfflineEarnings(offlineTime);
+                    showOfflineModal(offlineEarnings);
+                }
             }
+            localStorage.setItem('lastSave', Date.now().toString());
+        } catch (error) {
+            console.error('Error checking offline progress:', error);
         }
-        localStorage.setItem('lastSave', Date.now().toString());
     }
 
     // Calculate Offline Earnings
     function calculateOfflineEarnings(offlineTime) {
-        const autoClickerEarnings = gameState.autoClickers * gameState.clickMultiplier * offlineTime;
-        const solarPanelEarnings = gameState.solarPanels * gameState.solarPanelEfficiency * offlineTime;
-        return {
-            energy: autoClickerEarnings + solarPanelEarnings,
-            money: gameState.estates.reduce((total, estate) => {
+        try {
+            // Calculate base passive energy generation
+            const weatherMultiplier = gameState.weatherEffects[gameState.weather].energyMultiplier;
+            const nightMultiplier = 0.8; // Assume night time for offline calculations
+            let totalEnergy = 0;
+
+            // Auto clicker earnings
+            const autoClickerEarnings = gameState.autoClickers * gameState.clickMultiplier * offlineTime * nightMultiplier;
+            totalEnergy += autoClickerEarnings;
+
+            // Estate solar panel earnings
+            const estateEarnings = gameState.estates.reduce((total, estate) => {
+                return total + (estate.getPassiveEnergy() * weatherMultiplier * nightMultiplier * offlineTime);
+            }, 0);
+            totalEnergy += estateEarnings;
+
+            // Apply efficiency and prestige multipliers
+            totalEnergy *= gameState.solarPanelEfficiency * (1 + gameState.prestige.multiplier);
+
+            // Calculate money from estates
+            const moneyEarned = gameState.estates.reduce((total, estate) => {
                 return total + (estate.income * gameState.taxRate * offlineTime);
-            }, 0)
-        };
+            }, 0);
+
+            return {
+                energy: totalEnergy,
+                money: moneyEarned
+            };
+        } catch (error) {
+            console.error('Error calculating offline earnings:', error);
+            return { energy: 0, money: 0 };
+        }
     }
 
     // Show Offline Modal
     function showOfflineModal(earnings) {
-        offlineEarnings.textContent = `Energy: ${Math.floor(earnings.energy)}, Money: ${Math.floor(earnings.money)}`;
-        offlineModal.classList.add('show');
+        try {
+            const offlineEnergy = document.getElementById('offline-energy');
+            const offlineMoney = document.getElementById('offline-money');
+            
+            if (offlineEnergy && offlineMoney) {
+                offlineEnergy.textContent = Math.floor(earnings.energy);
+                offlineMoney.textContent = Math.floor(earnings.money);
+                offlineModal.classList.add('show');
+            }
+        } catch (error) {
+            console.error('Error showing offline modal:', error);
+        }
     }
 
     // Collect Offline Earnings
     function collectOfflineEarnings() {
-        const earnings = calculateOfflineEarnings(0);
-        gameState.energy += earnings.energy;
-        gameState.money += earnings.money;
-        offlineModal.classList.remove('show');
-        updateDisplays();
+        try {
+            const earnings = calculateOfflineEarnings(0);
+            gameState.energy += earnings.energy;
+            gameState.money += earnings.money;
+            gameState.stats.totalEnergy += earnings.energy;
+            gameState.stats.totalMoney += earnings.money;
+            
+            offlineModal.classList.remove('show');
+            updateDisplays();
+            showNotification(`Collected ${Math.floor(earnings.energy)} energy and $${Math.floor(earnings.money)}`);
+        } catch (error) {
+            console.error('Error collecting offline earnings:', error);
+            showNotification('Error collecting offline earnings!');
+        }
     }
 
     // Show Save Indicator
